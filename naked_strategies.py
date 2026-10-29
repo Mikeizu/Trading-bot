@@ -33,6 +33,12 @@ PROFILES={
 
 class StrategyError(ValueError): pass
 
+# Bound numerical operations, rather than allowing finite inputs whose derived
+# variances/ratios overflow JSON or manufacture non-finite indicator signals.
+# The range deliberately extends far beyond financial instrument prices.
+MIN_PRICE=1e-100
+MAX_PRICE=1e100
+
 def candles_valid(rows):
     if not isinstance(rows,list) or len(rows)>10000:raise StrategyError('Provide a list of at most 10,000 OHLC candles')
     out=[]
@@ -47,7 +53,9 @@ def candles_valid(rows):
             if timestamp!=epoch or not -62135596800<=epoch<=253370764800:
                 raise ValueError('Timestamp must be an integer Unix second within supported calendar bounds')
         except (ValueError,TypeError,KeyError,OverflowError) as e:raise StrategyError('Candles need numeric time/open/high/low/close') from e
-        if not all(math.isfinite(x) and x>0 for x in (o,h,l,c)) or l>min(o,c) or h<max(o,c) or l>h:
+        if not all(math.isfinite(x) and MIN_PRICE<=x<=MAX_PRICE for x in (o,h,l,c)):
+            raise StrategyError('Candle prices must be within the supported numerical range 1e-100 to 1e100')
+        if l>min(o,c) or h<max(o,c) or l>h:
             raise StrategyError('Candle OHLC values are inconsistent or non-positive')
         if out and epoch<=out[-1]['time']:raise StrategyError('Candles must be ordered by unique, increasing timestamps')
         out.append({'time':epoch,'open':o,'high':h,'low':l,'close':c})
@@ -62,7 +70,9 @@ def resample(rows,frame):
     Friday can leave the most recent week unavailable until another week appears.
     Interior groups end before the next group; missing sessions are not invented.
     """
+    if not isinstance(frame,str) or frame not in TIMEFRAMES:raise StrategyError('Unsupported resampling timeframe')
     if frame not in ('1w','1mo'):return rows
+    rows=candles_valid(rows)
     groups=[]
     for r in rows:
         dt=datetime.fromtimestamp(r['time'],timezone.utc)
@@ -84,6 +94,10 @@ def resample(rows,frame):
 
 def sample_candles(count=1100,granularity=300,seed=4201):
     """Explicitly synthetic sample data: not Deriv or historical trading quotes."""
+    if isinstance(count,bool) or not isinstance(count,(int,float)) or not math.isfinite(count) or int(count)!=count:
+        raise StrategyError('Synthetic sample count must be an integer')
+    if isinstance(granularity,bool) or not isinstance(granularity,int) or not 1<=granularity<=31_536_000:
+        raise StrategyError('Synthetic granularity must be a positive integer of at most one year')
     rng=random.Random(seed)
     count=max(100,min(4000,int(count)))
     px=1.125
@@ -196,7 +210,9 @@ def detect(rows,i,strategy,parameters=None):
     A signal is actionable only after the NEXT bar CLOSES beyond the trigger.
     This intentional confirmation rule differs from the book's pending stop orders.
     """
-    if strategy not in STRATEGIES:raise StrategyError('Unsupported strategy')
+    if not isinstance(strategy,str) or strategy not in STRATEGIES:raise StrategyError('Unsupported strategy')
+    if not isinstance(rows,list) or isinstance(i,bool) or not isinstance(i,int) or not 0<=i<len(rows):
+        raise StrategyError('Pattern index is outside candle history')
     rules=validate_parameters(parameters)
     if i<65:return None
     c=rows[i];prev=rows[i-1];rng=_range(c)
@@ -281,6 +297,9 @@ def confirmed_signal(rows,strategy,parameters=None):
     This is not the book's exact stop order entry, deliberately keeps automation
     from triggering on a wick and uses no partially formed candles.
     """
+    rows=candles_valid(rows)
+    if not isinstance(strategy,str) or strategy not in STRATEGIES:raise StrategyError('Unsupported strategy')
+    validate_parameters(parameters)
     if len(rows)<70:return None
     previous=detect(rows,len(rows)-2,strategy,parameters)
     if not previous:return None

@@ -77,7 +77,7 @@ Databases default to the checkout or the private `MIKEIZU_DATA_DIR`. `CREATE TAB
 
 | Database | Main tables and keys | Recorded content |
 |---|---|---|
-| `tradelab.db` | `settings(key PK)`, `candles(asset,tick PK)`, `trades(id PK)` | Synthetic practice settings, generated/imported OHLC and separate synthetic trades. |
+| `tradelab.db` | `settings(key PK)`, `candles(asset,tick PK)`, `trades(id PK)` | Synthetic settings, generated/imported OHLC and trades with entry-time `payout`/`payout_source`. Supplied CSV epochs are preserved; missing times are labelled `custom_time_origin=inferred_one_minute_intervals`. |
 | `deriv_order_journal.db` | `orders(id PK, nonce UNIQUE)`, `order_audit(id PK)` | Account, mode, symbol/direction, stake/ask/expiry, contract ID, explicit order state/P&L, timestamps; allowlisted `context_json` containing strategy/version/timeframe/signal/regime/rationale/data hash; linked audit events and materialized-state checks. |
 | `naked_signals.db` | `strategy_events(id PK)` with unique account/symbol/timeframe/strategy/confirmation timestamp, `strategy_event_history(id PK)` | Signal mode/side/action, explanation/detail, version, regime, data hash, supporting evidence; separate append history preserves initial SIGNAL and later outcomes rather than overwriting the only record. |
 | `naked_paper.db` | `paper_positions(id PK)`, `paper_accounts(account_id PK)` | Pending/open/closed/cancelled virtual entries, stops/targets/risk, quantity, exit/gross/net/cost assumptions, signal identity, account high-water mark and halt. |
@@ -92,4 +92,7 @@ The order journal uses schema revision 3 with additive context/audit migration a
 - Missing/stale calendar blocks affected automated broker entries; monitor mode remains available.
 - Paper signals queue for a next completed bar's open and have costs/default 0.5% risk. Old confirmation-close, cost-free, 1% paper expectations are obsolete.
 - The 65% research target is informational; net evidence and chronological validation determine research eligibility.
+- Synthetic entries use a prior closed-bar signal and the next generated open. A one-bar contract expires at that bar's close. Entry payout is immutable; legacy terms are labelled as a migration assumption.
+- Imported history cannot be synthetically extended or replace history while practice orders remain open.
+- Paper model v3 cancels pending entries when the expected next bar is missing and retains a last-checked watermark so revised old candles cannot create retroactive settlements.
 - Older saved report assumptions remain historical. Do not rewrite them to look like the current strategy/model version.

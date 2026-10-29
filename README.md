@@ -8,6 +8,8 @@ A private, local Python trading research application with seven measurable price
 
 Requires Python 3.10 or newer. On Windows, install Python from [python.org](https://www.python.org/downloads/) and run `START_WINDOWS.bat`.
 
+The downloadable ZIP includes the verified dependency wheel for offline installation. Extract the entire ZIP before starting it. See [download instructions](DOWNLOAD_README.txt); this is a Python application package, not a standalone Windows executable.
+
 On macOS/Linux:
 
 ```bash
@@ -50,7 +52,7 @@ The historical model uses assumed costs and fixed-expiry option payouts. It does
 python -m unittest discover -s tests -v
 ```
 
-Use the virtual environment's Python when dependencies are installed there. Local validation passed **196 tests** on Python 3.12.14 plus the actual-server Chromium workflow smoke. See [validation evidence](docs/VALIDATION.md) for executed checks and their limits.
+Use the virtual environment's Python when dependencies are installed there. Expanded local validation passed **282 tests** on Python 3.12.14, plus control-by-control browser checks with offline and simulated-broker sessions. See the [control audit](docs/CONTROL_AUDIT.md) and [validation evidence](docs/VALIDATION.md) for executed checks and their limits. Real broker access and Windows execution remain unverified.
 
 ## Documentation
 
@@ -61,6 +63,8 @@ Use the virtual environment's Python when dependencies are installed there. Loca
 - [Operations, risk controls, backups, and demo procedures](docs/OPERATIONS.md)
 - [Database and API contracts](docs/API_AND_DATA.md)
 - [Validation and reproducible trading research](docs/VALIDATION.md)
+- [Control-by-control acceptance audit](docs/CONTROL_AUDIT.md)
+- [Function review and coverage limits](docs/FUNCTION_AUDIT.md)
 - [Original user development brief](docs/MASTER_PROMPT.md)
 
 `STRATEGY_GUIDE.md`, `AUTO_SELECTOR_GUIDE.md`, and `DERIV_*_FIX.md` arrived with the archive. Their strategy background and historical diagnostics remain useful, but old live opt-in, cost assumptions, paper-risk, and promotion descriptions are superseded by the current documentation. [Archived release notes](docs/ARCHIVE_RELEASE_NOTES.md) preserve that source history.

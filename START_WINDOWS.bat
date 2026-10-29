@@ -36,14 +36,19 @@ if not exist ".venv\Scripts\python.exe" (
  %PY% -m venv .venv
  if errorlevel 1 goto :fail
 )
-echo Installing the official WebSocket client dependency (internet needed on first run)...
-".venv\Scripts\python.exe" -m pip install --require-hashes -r requirements.lock -q
+if exist "vendor\wheels" (
+ echo Installing the bundled verified dependency offline...
+ ".venv\Scripts\python.exe" -m pip install --no-index --find-links vendor\wheels --require-hashes -r requirements.lock -q
+) else (
+ echo Installing the verified WebSocket client dependency...
+ ".venv\Scripts\python.exe" -m pip install --require-hashes -r requirements.lock -q
+)
 if errorlevel 1 goto :fail
 echo Starting localhost app...
 ".venv\Scripts\python.exe" deriv_server.py %*
 if errorlevel 1 goto :fail
 exit /b 0
 :fail
-echo Failed to start. Check your internet connection and Python installation.
+echo Failed to start. Check Python, the bundled dependency, or the error above.
 pause
 exit /b 1

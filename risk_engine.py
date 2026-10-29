@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import math
+import re
 from pathlib import Path
 import sqlite3
 import threading
@@ -62,7 +63,7 @@ def _number(value, name, *, minimum=None):
         result = float(value)
     except (TypeError, ValueError, OverflowError):
         raise RiskError(f'{name} must be a finite number') from None
-    if not math.isfinite(result) or (minimum is not None and result < minimum):
+    if not math.isfinite(result) or abs(result)>1e100 or (minimum is not None and result < minimum):
         raise RiskError(f'{name} must be a finite number' + (f' >= {minimum:g}' if minimum is not None else ''))
     return result
 
@@ -80,7 +81,10 @@ def _encode(value):
 
 
 def _windows(now):
-    dt = datetime.fromtimestamp(now, timezone.utc)
+    try:
+        dt = datetime.fromtimestamp(now, timezone.utc)
+    except (OverflowError, OSError, ValueError):
+        raise RiskError('Current timestamp is outside the supported UTC calendar') from None
     day = dt.replace(hour=0, minute=0, second=0, microsecond=0)
     return day.timestamp(), day.timestamp() - dt.weekday() * 86400
 
@@ -351,7 +355,7 @@ class RiskEngine:
             when = _number(event.get('time'), 'Event time', minimum=0)
             currencies = event.get('currencies')
             if (not isinstance(currencies, list) or not currencies or len(currencies) > 20 or
-                any(not isinstance(x, str) or (x != '*' and (len(x) != 3 or not x.isalpha() or not x.isupper())) for x in currencies)):
+                any(not isinstance(x, str) or (x != '*' and not re.fullmatch(r'[A-Z]{3}', x)) for x in currencies)):
                 raise RiskError('Event currencies must be uppercase three-letter codes or *')
             impact = event.get('impact', 'high')
             if impact not in ('high', 'medium', 'low'):
@@ -388,7 +392,8 @@ class RiskEngine:
     @staticmethod
     def _currencies(symbol):
         # Deriv names such as frxEURUSD and standard EUR/USD remain auditable.
-        letters = ''.join(ch for ch in str(symbol).upper() if ch.isalpha())
+        if not str(symbol).isascii():return None
+        letters = ''.join(ch for ch in str(symbol).upper() if 'A'<=ch<='Z')
         for prefix in ('FRX', 'FOREX'):
             if letters.startswith(prefix):
                 letters = letters[len(prefix):]
@@ -479,6 +484,7 @@ class RiskEngine:
         closed = []
         exposures = []
         tracked_nonces = set()
+        tracked_states = {}
         try:
             for order in orders:
                 if not isinstance(order, dict):
@@ -486,11 +492,16 @@ class RiskEngine:
                 if order.get('account_id', account_id) != account_id or order.get('mode', mode) != mode:
                     continue
                 status = order.get('status')
-                if status not in ACTIVE | FINAL:
+                if not isinstance(status,str) or status not in ACTIVE | FINAL:
                     raise RiskError('Order history contains an unknown execution state')
                 nonce = order.get('nonce')
                 if nonce:
+                    if not isinstance(nonce, str):
+                        raise RiskError('Order history contains an invalid order nonce')
+                    if nonce in tracked_nonces:
+                        raise RiskError('Order history contains a duplicate order nonce')
                     tracked_nonces.add(nonce)
+                    tracked_states[nonce] = status
                 opened = _number(order.get('opened_at'), 'Order opened_at', minimum=0)
                 if opened > current + 60:
                     raise RiskError('Order history has future timestamps')
@@ -502,11 +513,16 @@ class RiskEngine:
                                       'Settlement timestamp', minimum=0)
                     if settled > current + 60:
                         raise RiskError('Settlement timestamp is in the future')
+                    if settled < opened:
+                        raise RiskError('Settlement timestamp precedes order submission')
                     if settled >= day:
                         day_pnl += pnl
                     if settled >= week:
                         week_pnl += pnl
-                    closed.append((settled, pnl))
+                    # Journal history is in ascending order. Preserve that order
+                    # for same-second settlements instead of sorting by profit,
+                    # which could let a simultaneous win hide later losses.
+                    closed.append((settled, len(closed), pnl))
                 elif status in ACTIVE:
                     amount = _number(order.get('ask_price', order.get('stake')), 'Open order maximum loss', minimum=.01)
                     exposures.append((order.get('symbol', ''), self._group(order.get('symbol', ''), market_kind), amount))
@@ -536,6 +552,9 @@ class RiskEngine:
                     reasons.append('A reserved order is absent from the broker journal; reconcile before new entries')
                 elif reservation['status'] in ('APPROVED', 'PENDING', 'UNCERTAIN'):
                     reasons.append('Pending or uncertain risk reservation requires reconciliation')
+                elif tracked_states.get(reservation['nonce']) != reservation['status']:
+                    exposures.append((reservation['symbol'], reservation['group_name'], reservation['stake']))
+                    reasons.append('Risk reservation and order journal disagree; reconcile before new entries')
         except RiskError as exc:
             reasons.append(str(exc))
 
@@ -574,13 +593,13 @@ class RiskEngine:
             reasons.append('Maximum correlated-group exposure would be exceeded')
 
         streak = 0
-        for settled, pnl in sorted(closed, reverse=True):
+        for settled, _, pnl in sorted(closed, reverse=True):
             if pnl < 0:
                 streak += 1
             else:
                 break
         if streak >= conf['consecutive_loss_limit'] and closed:
-            latest_loss = max(t for t, _ in closed)
+            latest_loss = max(t for t, _, _ in closed)
             if current < latest_loss + conf['cooldown_minutes'] * 60:
                 reasons.append('Consecutive-loss cooldown is active')
                 checks['cooldown_until'] = latest_loss + conf['cooldown_minutes'] * 60
@@ -634,6 +653,8 @@ class RiskEngine:
             return decision
 
     def resolve(self, nonce, status):
+        if not isinstance(nonce, str) or not nonce or len(nonce) > 128:
+            raise RiskError('A valid order nonce is required')
         if status not in ('PENDING', 'OPEN', 'UNCERTAIN', 'CLOSED', 'REJECTED'):
             raise RiskError('Invalid risk reservation status')
         with self._db() as c:
@@ -651,6 +672,8 @@ class RiskEngine:
                 return True
             if row['status'] in ('OPEN', 'UNCERTAIN') and status == 'REJECTED':
                 raise RiskError('Accepted or uncertain execution requires broker reconciliation, not rejection')
+            if row['status'] in ('OPEN', 'UNCERTAIN') and status == 'PENDING':
+                raise RiskError('Accepted or uncertain execution cannot be downgraded to pending')
             now = time.time()
             c.execute('UPDATE risk_reservations SET status=?,updated_at=? WHERE nonce=?', (status, now, nonce))
             self._append(c, row['account_id'], row['mode'], 'ORDER_' + status, {'nonce': nonce}, now)

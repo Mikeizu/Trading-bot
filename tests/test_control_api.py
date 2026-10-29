@@ -116,8 +116,82 @@ class ControlApiTests(unittest.TestCase):
         self.assertTrue(audit['integrity']);self.assertEqual(len(audit['events']),2)
         self.assertNotIn('demo-test-token',json.dumps(audit))
 
+    def prepare_indicator(self,lag=60,calendar=True):
+        self.assertEqual(self.connect()[0],200)
+        now=int(time.time());last=now//60*60-lag
+        rows=[{'time':last-(139-i)*60,'open':100,'high':102,'low':99,'close':101} for i in range(140)]
+        self.transport.candles=lambda symbol:rows
+        self.broker.automation=True;self.broker.auto_symbol='R_100'
+        if calendar:self.broker.risk.set_calendar(self.broker.account_id,'demo',[],now,now+3600,'deterministic fixture')
+
+    @staticmethod
+    def one_auto_iteration():
+        from unittest.mock import Mock
+        stop=Mock();stop.wait.side_effect=[False,True]
+        app.auto_loop(stop)
+
+    def test_indicator_worker_submits_once_for_completed_candle(self):
+        self.prepare_indicator()
+        with patch.object(app,'signal_at',return_value='UP'):
+            self.one_auto_iteration();self.one_auto_iteration()
+        self.assertEqual(self.transport.buy_count,1)
+        self.assertEqual(self.journal.orders(self.broker.account_id)[0]['status'],'OPEN')
+
+    def test_indicator_worker_stale_data_and_calendar_outage_do_not_buy(self):
+        for lag,calendar in ((600,True),(60,False)):
+            with self.subTest(lag=lag,calendar=calendar):
+                self.prepare_indicator(lag=lag,calendar=calendar)
+                if not calendar:
+                    # A separate account avoids reusing earlier fixture coverage.
+                    self.broker.risk.set_calendar(self.broker.account_id,'demo',[],time.time()-90000,time.time()-80000,'stale fixture')
+                with patch.object(app,'signal_at',return_value='UP'):self.one_auto_iteration()
+                self.assertEqual(self.transport.buy_count,0)
+
+    def test_indicator_worker_fault_and_global_stop_fail_closed(self):
+        self.prepare_indicator();self.broker.risk.kill_all('test')
+        with patch.object(app,'signal_at',return_value='UP'):self.one_auto_iteration()
+        self.assertFalse(self.broker.automation);self.assertEqual(self.transport.buy_count,0)
+
+    def test_account_switch_cancels_supervisor_before_failed_connection(self):
+        self.connect()
+        self.supervisor.configure({'strategy':'kangaroo','profile':'scalping','timeframe':'5m',
+            'symbol':'R_100','action':'monitor','stake':1,'expiry_minutes':3})
+        code,_,_=self.request('/api/deriv/connect',{'app_id':'test-app','token':'bad',
+            'account_id':'DOT90000001','mode':'demo'})
+        self.assertEqual(code,400);self.assertFalse(self.supervisor.active)
+
+    def test_all_mutation_families_reject_nonfinite_json(self):
+        for path in ('/api/settings','/api/strategy/stop','/api/deriv/disconnect','/api/risk/kill'):
+            with self.subTest(path=path):self.assertEqual(self.request(path,{'unused':float('nan')})[0],400)
+
+    def test_synthetic_json_content_type_and_invalid_enums_return_client_error(self):
+        self.assertEqual(self.request('/api/robot',{'active':True},headers={'Content-Type':'text/plain'})[0],415)
+        for path,obj in (('/api/settings',{'asset':[]}),('/api/backtest',{'strategy':{}}),
+                         ('/api/backtest',{'duration':1.5}),('/api/backtest',{'stake':True})):
+            with self.subTest(path=path,obj=obj):self.assertEqual(self.request(path,obj)[0],400)
+
 
 class JournalRecoveryTests(unittest.TestCase):
+    def test_tampered_materialized_order_cannot_be_laundered_by_update(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'orders.db';book=app.Journal(path)
+            q={'token':'once','symbol':'R_100','side':'UP','stake':1.,'ask_price':1.,'minutes':2}
+            order=book.reserve('demo1','demo',q);book.update(order,'OPEN','123')
+            with sqlite3.connect(path) as c:c.execute('UPDATE orders SET stake=0.01 WHERE id=?',(order,))
+            with self.assertRaisesRegex(ValueError,'integrity'):book.update(order,'CLOSED','123',.8)
+            self.assertFalse(book.audit()['integrity'])
+
+    def test_final_settlement_is_idempotent_and_immutable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            book=app.Journal(Path(tmp)/'orders.db')
+            q={'token':'once','symbol':'R_100','side':'UP','stake':1.,'ask_price':1.,'minutes':2}
+            order=book.reserve('demo1','demo',q);book.update(order,'OPEN','123')
+            book.update(order,'CLOSED','123',.8)
+            previous=book.history('demo1')[0];count=book.audit()['count']
+            book.update(order,'CLOSED','123',.8)
+            self.assertEqual(book.history('demo1')[0],previous)
+            self.assertEqual(book.audit()['count'],count)
+            with self.assertRaises(ValueError):book.update(order,'CLOSED','123',99)
     def test_durable_context_state_and_tamper_detection(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'orders.db';book=app.Journal(path)

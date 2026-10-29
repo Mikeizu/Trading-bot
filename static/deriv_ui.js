@@ -1,6 +1,7 @@
 'use strict';
 // Broker controls are separate from the local synthetic trading workspace.
 let derivStatus=null, derivQuote=null, derivAccounts=[], derivDurations=null, derivDurationKey="", derivDurationError="";
+let derivOrderRevision=0;
 const d=id=>document.getElementById(id);
 async function derivReq(route,payload){
   const options=payload===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)};
@@ -14,6 +15,10 @@ async function derivAction(route,payload,success){
   catch(err){toast(err.message,true);await loadDeriv();return null;}
 }
 function renderDeriv(s){
+  const previousAccount=`${derivStatus?.account_id||''}:${derivStatus?.mode||''}`;
+  if(previousAccount!==`${s.account_id||''}:${s.mode||''}`||!s.connected){
+    derivOrderRevision++;derivQuote=null;d('deriv-quote-panel').hidden=true;
+  }
   derivStatus=s;window.derivStatus=s;
   const connected=s.connected, live=s.mode==='real';
   d('deriv-top-status').textContent=!connected?'DERIV NOT CONNECTED':`DERIV ${s.mode==='real'?'REAL · READ ONLY':s.mode.toUpperCase()} CONNECTED`;
@@ -54,17 +59,18 @@ function derivUpdateDurationUI(){
     option.disabled=Array.isArray(valid) && !valid.includes(n);
   }
   const button=d('deriv-order-form').querySelector('[type="submit"]');
-  if(button)button.disabled=(!derivStatus?.connected || derivStatus.mode!=='demo' || !Array.isArray(valid) || valid.length===0);
+  const selectedValid=Array.isArray(valid)&&valid.includes(Number(select.value));
+  if(button)button.disabled=(!derivStatus?.connected || derivStatus.mode!=='demo' || !selectedValid);
   if(!derivStatus?.connected){label.textContent='Connect your Deriv account to inspect contract durations.';return;}
   if(!valid){label.textContent=derivDurationError || 'Check supported expiries for this market and direction before requesting a quote.';return;}
   label.textContent=valid.length
-    ?`Deriv advertises ${side} expiry minute(s): ${valid.join(', ')}. Quote availability must still be confirmed.`
+    ?`Deriv advertises ${side} expiry minute(s): ${valid.join(', ')}. ${selectedValid?'Quote availability must still be confirmed.':'Select a supported expiry; the current choice is unavailable.'}`
     :`Deriv currently advertises no ${side} Rise/Fall contracts lasting 1–15 minutes on this asset. Choose another asset or direction.`;
 }
 async function derivCheckDurations(){
-  if(!derivStatus?.connected)return;
+  if(!derivStatus?.connected)return toast('Connect a Deriv account before checking supported expiries.',true);
   const symbol=d('deriv-symbol').value;
-  if(!symbol)return;
+  if(!symbol)return toast('Select a broker market before checking supported expiries.',true);
   const key=`${derivStatus.account_id}:${symbol}`;
   d('deriv-duration-info').textContent='Checking current Deriv contract offers…';
   derivDurations=null;derivDurationKey='';derivDurationError='';
@@ -105,20 +111,26 @@ function derivHandlers(){
     e.preventDefault();const account_id=d('deriv-account').value;
     const found=derivAccounts.find(a=>a.account_id===account_id);
     if(!found)return toast('Select an account returned by Deriv',true);
-    if(found.account_type==='real' && !confirm('This is a REAL account. Live orders remain locked unless separately enabled and armed. Connect?'))return;
+    if(found.account_type==='real' && !confirm('This is a REAL account. It will be read-only: live order execution is unavailable in this release. Connect to inspect its data?'))return;
     const out=await derivAction('connect',{app_id:d('deriv-app-id').value.trim(),token:d('deriv-pat').value.trim(),account_id,mode:found.account_type},'Broker account connected');
     if(out){d('deriv-pat').value='';d('deriv-app-id').value='';derivAccounts=[];d('deriv-account').replaceChildren(new Option('Already connected; disconnect to change accounts',''));}
   });
   d('deriv-disconnect').addEventListener('click',()=>{
     if(confirm('Disconnect the broker session? Any existing Deriv contracts will continue to expiry.')){
+      derivOrderRevision++;
       derivAction('disconnect',{},'Broker disconnected');derivQuote=null;d('deriv-quote-panel').hidden=true;
       d('deriv-pat').value='';d('deriv-app-id').value='';derivAccounts=[];d('deriv-account').replaceChildren(new Option('Find accounts first',''));
     }
   });
   d('deriv-refresh').addEventListener('click',async()=>{
-    if(!derivStatus?.connected)return loadDeriv();
-    const result=await derivAction('snapshot',{},'Broker balance and journal reconciled');
-    if(result)toast(`Deriv balance: ${result.balance.toFixed(2)} ${result.currency}`);
+    if(!derivStatus?.connected){await loadDeriv();toast('Connect a Deriv account to refresh its balance and markets.',true);return;}
+    derivOrderRevision++;
+    derivQuote=null;d('deriv-quote-panel').hidden=true;
+    try{
+      const result=await derivReq('snapshot',{});
+      renderDeriv(await derivReq('markets',{}));
+      toast(`Broker balance, markets and journal refreshed: ${Number(result.balance).toFixed(2)} ${result.currency}`);
+    }catch(error){toast(error.message,true);await loadDeriv();}
   });
   d('deriv-arm').addEventListener('click',async()=>{
     const phrase=d('deriv-arm-phrase').value.trim();
@@ -126,17 +138,19 @@ function derivHandlers(){
     if(out)d('deriv-arm-phrase').value='';
   });
   d('deriv-check-durations').addEventListener('click',()=>derivCheckDurations());
-  d('deriv-symbol').addEventListener('change',()=>{derivQuote=null;d('deriv-quote-panel').hidden=true;derivCheckDurations()});
-  d('deriv-side').addEventListener('change',()=>{derivQuote=null;d('deriv-quote-panel').hidden=true;derivUpdateDurationUI()});
+  d('deriv-symbol').addEventListener('change',()=>{derivOrderRevision++;derivQuote=null;d('deriv-quote-panel').hidden=true;derivCheckDurations()});
+  d('deriv-side').addEventListener('change',()=>{derivOrderRevision++;derivQuote=null;d('deriv-quote-panel').hidden=true;derivUpdateDurationUI()});
+  ['deriv-stake','deriv-minutes'].forEach(id=>d(id).addEventListener('input',()=>{derivOrderRevision++;derivQuote=null;d('deriv-quote-panel').hidden=true;derivUpdateDurationUI();}));
   d('deriv-order-form').addEventListener('submit',async e=>{
     e.preventDefault();derivQuote=null;d('deriv-quote-panel').hidden=true;
+    const revision=++derivOrderRevision,account_id=derivStatus?.account_id;
     const data={symbol:d('deriv-symbol').value,side:d('deriv-side').value,stake:Number(d('deriv-stake').value),minutes:Number(d('deriv-minutes').value)};
     if(derivDurations && derivDurationKey===`${derivStatus?.account_id}:${data.symbol}` &&
         !derivDurations[data.side].includes(data.minutes))return toast('Unsupported duration: check the available expiries and choose one offered for this direction.',true);
     const p=await derivAction('quote',data);
-    if(p){derivQuote=p;d('deriv-quote-panel').hidden=false;
+    if(p&&revision===derivOrderRevision&&derivStatus?.connected&&account_id===derivStatus.account_id&&p.mode===derivStatus.mode){derivQuote=p;d('deriv-quote-panel').hidden=false;
       d('deriv-quote-details').textContent=`${p.mode.toUpperCase()} | ${p.symbol} | ${p.side} | ${p.minutes} minute(s) | Max buy price ${p.ask_price} | Indicative payout ${p.payout??'unavailable'}`;
-    }
+    }else if(p)toast('Order inputs or account changed while pricing. Request a fresh quote.',true);
   });
   d('deriv-buy').addEventListener('click',async()=>{
     if(!derivQuote)return toast('Request a fresh quote first',true);

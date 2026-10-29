@@ -320,6 +320,75 @@ class RiskTests(unittest.TestCase):
         with self.assertRaises(RiskError):
             self.risk.require('REAL1', 'real', **self.base)
 
+    def test_same_second_settlements_preserve_journal_order_for_cooldown(self):
+        orders=[{**self.closed(pnl),'nonce':f'settled-{index}'}
+                for index,pnl in enumerate((1,-1,-1,-1))]
+        result=self.check(orders=orders)
+        self.assertFalse(result['allowed'])
+        self.assertEqual(result['checks']['consecutive_losses'],3)
+        self.assertTrue(any('cooldown' in reason for reason in result['reasons']))
+
+    def test_open_reservation_cannot_disappear_behind_final_journal_state(self):
+        self.assertTrue(self.risk.reserve('order-1','DEMO1','demo',**self.base)['allowed'])
+        self.risk.resolve('order-1','OPEN')
+        final={**self.closed(.8),'nonce':'order-1'}
+        result=self.check(orders=[final])
+        self.assertFalse(result['allowed'])
+        self.assertTrue(any('disagree' in reason for reason in result['reasons']))
+        self.risk.resolve('order-1','CLOSED')
+        self.assertTrue(self.check(orders=[final])['allowed'])
+
+    def test_accepted_or_uncertain_reservation_cannot_be_downgraded_then_rejected(self):
+        self.assertTrue(self.risk.reserve('once','DEMO1','demo',**self.base)['allowed'])
+        self.risk.resolve('once','PENDING');self.risk.resolve('once','OPEN')
+        for status in ('OPEN','UNCERTAIN'):
+            self.risk.resolve('once',status)
+            with self.subTest(status=status),self.assertRaises(RiskError):
+                self.risk.resolve('once','PENDING')
+        self.assertEqual(self.risk.status('DEMO1','demo')['reservations']['uncertain'],1)
+
+    def test_malformed_history_and_duplicate_nonces_block(self):
+        same=self.closed(1)
+        for orders in ([same,same],[{**same,'nonce':['invalid']}],
+                       [{**same,'updated_at':same['opened_at']-1}]):
+            with self.subTest(orders=orders):self.assertFalse(self.check(orders=orders)['allowed'])
+
+    def test_calendar_currency_codes_are_ascii_not_unicode_lookalikes(self):
+        with patch('risk_engine.time.time',return_value=self.now):
+            for currency in ('ÜSD','UЅD','usd','US1'):
+                with self.subTest(currency=currency),self.assertRaises(RiskError):
+                    self.risk.set_calendar('DEMO1','demo',[{'time':self.now,'currencies':[currency]}],
+                        self.now,self.now+3600,'Fixture')
+
+    def test_invalid_reservation_nonces_and_calendar_epoch_fail_cleanly(self):
+        for nonce in (None,[],True,'','x'*129):
+            with self.subTest(nonce=nonce),self.assertRaises(RiskError):self.risk.resolve(nonce,'OPEN')
+        with self.assertRaises(RiskError):self.risk.observe('DEMO1','demo',equity=10000,now=1e100)
+        self.assertTrue(self.risk.verify_audit()['valid'])
+
+    def test_unusable_finite_magnitudes_fail_before_arithmetic_overflow(self):
+        for field in ('equity','stake'):
+            with self.subTest(field=field):
+                decision=self.check(**{field:1e308})
+                self.assertFalse(decision['allowed'])
+                self.assertEqual(decision['checks'],{})
+        self.assertTrue(self.risk.verify_audit()['valid'])
+
+    def test_unhashable_order_states_return_a_denial(self):
+        for status in ([],{},True):
+            with self.subTest(status=status):
+                decision=self.check(orders=[{**self.closed(-1),'status':status}])
+                self.assertFalse(decision['allowed'])
+                self.assertTrue(any('execution state' in reason for reason in decision['reasons']))
+
+    def test_unrecognized_unicode_symbol_does_not_evade_news_relevance(self):
+        with patch('risk_engine.time.time',return_value=self.now):
+            self.risk.set_calendar('DEMO1','demo',[{'time':self.now,'currencies':['USD'],
+                'impact':'high','name':'fixture blackout'}],self.now,self.now+3600,'test fixture')
+        decision=self.check(symbol='frxÜSDJPY',automatic=True)
+        self.assertFalse(decision['allowed'])
+        self.assertTrue(any('blackout' in reason for reason in decision['reasons']))
+
 
 if __name__ == '__main__':
     unittest.main()

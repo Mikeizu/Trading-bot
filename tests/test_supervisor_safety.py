@@ -1,9 +1,9 @@
 """Safety tests of strategy orchestration with deterministic broker stand-ins."""
-import tempfile, threading, time, unittest
+import sqlite3,tempfile, threading, time, unittest
 from pathlib import Path
 from unittest.mock import patch
 from naked_strategies import sample_candles
-from strategy_extension import StrategySupervisor
+from strategy_extension import StrategySupervisor,SignalBook
 from deriv_bridge import BridgeError,DerivTransport
 
 class RiskStandIn:
@@ -99,8 +99,9 @@ class SupervisorSafetyTests(unittest.TestCase):
         self.assertIn('Stale',self.s.last_note)
     def test_nan_and_fractional_expiry_rejected(self):
         base={'strategy':'kangaroo','profile':'scalping','timeframe':'5m','symbol':'R_100','action':'monitor'}
-        for update in ({'stake':float('nan')},{'expiry_minutes':1.5},{'stake':True}):
-            with self.subTest(update=update),self.assertRaises(ValueError):self.s.configure({**base,**update})
+        for action in ('monitor','demo_trade'):
+            for update in ({'stake':float('nan')},{'expiry_minutes':1.5},{'stake':True},{'expiry_minutes':float('inf')}):
+                with self.subTest(update=update,action=action),self.assertRaises(ValueError):self.s.configure({**base,'action':action,**update})
     def test_signal_must_match_completed_candle(self):
         self.configure();self.sig['confirmed_at']-=300;self.tick()
         self.assertEqual(self.b.buys,[]);self.assertFalse(self.s.active)
@@ -140,5 +141,78 @@ class SupervisorSafetyTests(unittest.TestCase):
         with patch('strategy_extension.compare_all',side_effect=comparison):
             report=self.s.scan_all({'source':'deriv','symbol':'R_100','timeframe':'5m','profile':'scalping'})
         self.assertFalse(report['auto_eligible']);self.assertIsNone(self.s.best_selection['winner'])
+    def test_non_object_and_unhashable_strategy_inputs_are_validation_errors(self):
+        for request in (None,[],True,'not an object'):
+            for call in (self.s.configure,self.s.research,self.s.scan_all,self.s.activate_best):
+                with self.subTest(request=request,call=call.__name__),self.assertRaises(ValueError):call(request)
+        base={'strategy':'kangaroo','profile':'scalping','timeframe':'5m','symbol':'R_100','action':'monitor'}
+        for field in ('strategy','profile','timeframe','symbol'):
+            with self.subTest(field=field),self.assertRaises(ValueError):self.s.configure({**base,field:[]})
+        for call in (self.s.sample,lambda frame:StrategySupervisor.read_closed(self.s,'R_100',frame)):
+            with self.assertRaises(ValueError):call([])
+    def test_missing_or_incomplete_risk_information_blocks_virtual_and_demo_entries(self):
+        for risk in (None,object(),type('Incomplete',(),{'status':lambda *a:{}})()):
+            self.b.risk=risk
+            for action in ('paper_trade','demo_trade'):
+                with self.subTest(risk=risk,action=action),self.assertRaises(BridgeError):self.configure(action)
+            self.configure('monitor');self.s.stop()
+        self.assertEqual(self.b.buys,[])
+    def test_stop_during_network_quote_still_cancels_before_purchase(self):
+        self.configure();quoted=threading.Event();release=threading.Event()
+        def quote_wait():
+            quoted.set()
+            if not release.wait(3):raise RuntimeError('Test quote timed out')
+        self.b.after_quote=quote_wait
+        with patch('strategy_extension.confirmed_signal',return_value=self.sig),patch('strategy_extension.classify_regime',return_value=ELIGIBLE):
+            worker=threading.Thread(target=self.s.tick);worker.start()
+            self.assertTrue(quoted.wait(2))
+            stop=threading.Thread(target=lambda:self.s.stop('User stopped during network response'));stop.start()
+            deadline=time.monotonic()+2
+            while self.s.active and time.monotonic()<deadline:time.sleep(.005)
+            stopped_before_reply=not self.s.active
+            release.set();worker.join(3);stop.join(3)
+        self.assertTrue(stopped_before_reply)
+        self.assertFalse(worker.is_alive());self.assertFalse(stop.is_alive());self.assertEqual(self.b.buys,[])
+    def test_research_initial_capital_and_scan_ranking_options_are_honored(self):
+        report=self.s.research({'source':'synthetic','timeframe':'5m','profile':'scalping','initial_balance':2000})
+        self.assertEqual(report['capital_model']['initial_balance_per_split'],2000)
+        weights={'confidence_edge':1.,'expectancy':0.,'profit_factor':0.,'risk_adjusted_return':0.,'drawdown':0.,'walk_forward':0.}
+        scan=self.s.scan_all({'source':'synthetic','timeframe':'5m','profile':'scalping','ranking_weights':weights})
+        self.assertEqual(scan['ranking_weights'],weights)
+        with self.assertRaises(ValueError):self.s.scan_all({'regime_thresholds':{'unknown_limit':1}})
+    def test_signal_book_rejects_invalid_records_without_partial_history(self):
+        for update in ({'confirmed_at':True},{'confirmed_at':1e100},{'confirmed_at':1.5},
+                       {'side':'invented'},{'explanation':None},{'evidence':[]}):
+            with self.subTest(update=update),self.assertRaises(ValueError):
+                self.s.book.record(self.b.account_id,'demo','R_100','5m','kangaroo',{**self.sig,**update},'SIGNAL','test')
+        self.assertEqual(self.s.book.recent(self.b.account_id),[])
+        self.assertEqual(self.s.book.history(self.b.account_id),[])
+        for limit in (0,-1,1.5,True,10001):
+            for call in (self.s.book.recent,self.s.book.history):
+                with self.subTest(limit=limit),self.assertRaises(ValueError):call(self.b.account_id,limit)
+    def test_selected_strategy_rejects_future_selection_and_nonfinite_demo_expiry(self):
+        self.s.best_selection={'qualified':True,'winner':'kangaroo','created_at':int(time.time()),
+            'account_id':self.b.account_id,'mode':'demo','source':'deriv','profile':'scalping',
+            'timeframe':'1m','symbol':'R_100','expiry_bars':3,'assumed_payout':.8}
+        for expiry in (float('inf'),True,3.5):
+            with self.subTest(expiry=expiry),self.assertRaises(ValueError):
+                self.s.activate_best({'action':'demo_trade','expiry_minutes':expiry})
+        self.s.best_selection['created_at']+=3600
+        with self.assertRaises(BridgeError):self.s.activate_best({'action':'monitor'})
+        self.assertEqual(self.b.buys,[])
+    def test_signal_and_outcome_history_failures_roll_back_atomically(self):
+        trigger="""CREATE TRIGGER reject_history BEFORE INSERT ON strategy_event_history
+            BEGIN SELECT RAISE(ABORT,'test disk/audit fault'); END"""
+        with self.s.book._connect() as c:c.execute(trigger)
+        args=(self.b.account_id,'demo','R_100','5m','kangaroo',self.sig,'SIGNAL','test')
+        with self.assertRaises(sqlite3.IntegrityError):self.s.book.record(*args)
+        self.assertEqual(self.s.book.recent(self.b.account_id),[])
+        with self.s.book._connect() as c:c.execute('DROP TRIGGER reject_history')
+        self.assertTrue(self.s.book.record(*args))
+        with self.s.book._connect() as c:c.execute(trigger)
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.s.book.outcome(self.b.account_id,'R_100','5m','kangaroo',self.sig['confirmed_at'],'BROKER_ACCEPTED','test')
+        self.assertEqual(self.s.book.recent(self.b.account_id)[0]['action'],'SIGNAL')
+        self.assertEqual(len(self.s.book.history(self.b.account_id)),1)
 
 if __name__=='__main__':unittest.main()

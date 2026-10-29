@@ -22,7 +22,7 @@ function chooseNakedProfile(){let profile=ns('naked-profile').value;
  ns('naked-profile-note').textContent=nakedCatalog.profiles[profile].description;
  updateNakedControls()}
 function updateNakedControls(){const f=ns('naked-timeframe').value;
- const canTrade=['1m','5m','15m'].includes(f) && window.derivStatus?.mode==='demo';
+ const canTrade=['1m','5m','15m'].includes(f) && window.derivStatus?.connected===true && window.derivStatus.mode==='demo';
  const mode=ns('naked-action');
  mode.querySelector('option[value="demo_trade"]').disabled=!canTrade;
  if(!canTrade && mode.value==='demo_trade')mode.value='monitor';
@@ -175,7 +175,7 @@ async function nakedPoll(){try{loadNakedSymbols();nakedRenderStatus(await nakedR
 async function nakedActivate(){const q=nakedBuild();q.action=ns('naked-action').value;q.expiry_minutes=Number(ns('naked-expiry-minutes').value);
  if(!window.derivStatus?.connected)return nakedNotice('Connect your official Deriv account in the Broker tab before enabling the automated monitor.',true);
  const msg=q.action==='demo_trade'?`Start automated purchases on your Deriv DEMO account? Strategy ${q.strategy}, ${q.timeframe}, ${q.symbol}, stake ${q.stake}. These are broker virtual-money options orders, not stop-loss forex trades.`:
- q.action==='paper_trade'?`Start automatic VIRTUAL positions on ${q.symbol} ${q.timeframe}? Pattern-extreme stop, fixed 2R target, risk 1% of paper equity. No broker orders will be placed.`:`Start automatic signal monitoring on ${q.symbol} ${q.timeframe}? No trades will be placed.`;
+ q.action==='paper_trade'?`Start automatic VIRTUAL positions on ${q.symbol} ${q.timeframe}? Next-bar-open entry, pattern-extreme stop, fixed 2R target, risk 0.5% of paper equity with estimated costs. No broker orders will be placed.`:`Start automatic signal monitoring on ${q.symbol} ${q.timeframe}? No trades will be placed.`;
  if(!confirm(msg))return;
  try{const result=await nakedReq('start',q);nakedRenderStatus(result);nakedNotice('Automation activated: '+result.action.toUpperCase())}catch(e){nakedNotice(e.message,true)}
 }

@@ -66,8 +66,10 @@ def classify_regime(rows, *, thresholds=None, news_state='unavailable', require_
             if not isinstance(row,dict) or any(isinstance(row.get(key),bool) for key in ('open','high','low','close','time')):
                 raise ValueError('Invalid candle')
             o, h, l, c = (float(row[key]) for key in ('open', 'high', 'low', 'close'))
-            epoch = int(row['time'])
-            if not all(math.isfinite(v) and v > 0 for v in (o, h, l, c)) or l > min(o, c) or h < max(o, c):
+            timestamp=float(row['time']);epoch=int(timestamp)
+            if timestamp!=epoch or not -62135596800<=epoch<=253370764800:
+                raise ValueError('Unsupported timestamp')
+            if not all(math.isfinite(v) and 1e-100<=v<=1e100 for v in (o, h, l, c)) or l > min(o, c) or h < max(o, c):
                 raise ValueError('Inconsistent candle')
             if clean and epoch <= clean[-1][0]:
                 raise ValueError('Unordered bars')

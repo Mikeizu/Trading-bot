@@ -14,3 +14,7 @@ dist/
 test-results/
 playwright-report/
 *.log
+.coverage
+.coverage.*
+coverage.json
+htmlcov/

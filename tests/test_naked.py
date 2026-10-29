@@ -27,7 +27,7 @@ class StrategyUnitTests(unittest.TestCase):
     def test_resample_consistency(self):
         t=1_700_000_000
         t=t-(t%86400)
-        rows=[{'time':t+86400*i,'open':1.0,'high':1.3,'low':.8,'close':1.1+i*.01} for i in range(35)]
+        rows=[{'time':t+86400*i,'open':1.0,'high':1.5,'low':.8,'close':1.1+i*.01} for i in range(35)]
         weeks=resample(rows,'1w')
         self.assertLess(len(weeks),len(rows))
         self.assertEqual(weeks[0]['open'],rows[0]['open'])
@@ -82,12 +82,12 @@ class SupervisorTests(unittest.TestCase):
         self.connect('demo')
         p=self.s.paper
         sig={'side':'UP','stop':99,'confirmed_at':1000}
-        idx=p.open(self.b.account_id,'R_100','1d','kangaroo',sig,100)
+        idx=p.open(self.b.account_id,'R_100','5m','kangaroo',sig,100)
         self.assertIsInstance(idx,int)
         self.assertEqual(p.positions(self.b.account_id)[0]['status'],'PENDING')
-        self.assertIsNone(p.open(self.b.account_id,'R_100','1d','kangaroo',sig,100))
+        self.assertIsNone(p.open(self.b.account_id,'R_100','5m','kangaroo',sig,100))
         # Next open fills, then both stop/target touch -> conservative .5% loss.
-        p.reconcile(self.b.account_id,'R_100','1d',[{'time':2000,'open':100,'close':100,'high':103,'low':98}])
+        p.reconcile(self.b.account_id,'R_100','5m',[{'time':1300,'open':100,'close':100,'high':103,'low':98}])
         self.assertEqual(p.positions(self.b.account_id)[0]['pnl'],-50.0)
         self.assertEqual(p.balance(self.b.account_id),9950)
 

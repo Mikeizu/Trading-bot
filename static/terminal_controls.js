@@ -8,8 +8,8 @@ const terminalFields=[
  ['max_positions','Maximum open contracts',3,1,3,1],
  ['max_trades_per_day','Maximum new orders / day',12,1,100,1],
  ['max_order_size','Maximum stake (account currency)',50,.01,50,.01],
- ['max_asset_exposure_pct','Maximum asset exposure (%)',1.5,.01,3,.1],
- ['max_group_exposure_pct','Maximum correlated-group exposure (%)',1.5,.01,3,.1],
+ ['max_asset_exposure_pct','Maximum asset exposure (%)',1.5,.01,3,.01],
+ ['max_group_exposure_pct','Maximum correlated-group exposure (%)',1.5,.01,3,.01],
  ['consecutive_loss_limit','Consecutive losses before cooldown',3,1,5,1],
  ['cooldown_minutes','Loss cooldown (minutes)',60,1,1440,1]
 ];

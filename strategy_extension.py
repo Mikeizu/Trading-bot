@@ -16,6 +16,19 @@ from market_regime import classify_regime
 
 GRANULARITIES={'1m':60,'5m':300,'15m':900,'1h':3600,'4h':14400,'1d':86400,'1w':86400,'1mo':86400}
 
+def _request_object(value):
+    if not isinstance(value,dict):raise StrategyError('Strategy request must be a JSON object')
+    return value
+
+def _frame(value):
+    if not isinstance(value,str) or value not in TIMEFRAMES:raise StrategyError('Invalid timeframe')
+    return value
+
+def _limit(value):
+    if isinstance(value,bool) or not isinstance(value,int) or not 1<=value<=10000:
+        raise StrategyError('Event limit must be an integer from 1 to 10000')
+    return value
+
 class SignalBook:
     def __init__(self,path):
         self.path=Path(path)
@@ -42,6 +55,16 @@ class SignalBook:
         except Exception:c.rollback();raise
         finally:c.close()
     def record(self,acct,mode,symbol,tf,strategy,signal,action,detail):
+        if (not all(isinstance(x,str) and x for x in (acct,symbol,strategy,action))
+                or mode not in ('demo','real') or not isinstance(signal,dict)):
+            raise StrategyError('A valid broker signal identity is required')
+        _frame(tf)
+        stamp=signal.get('confirmed_at')
+        if (isinstance(stamp,bool) or not isinstance(stamp,(int,float)) or not math.isfinite(stamp)
+                or not 0<=stamp<=253402300799 or stamp!=int(stamp) or signal.get('side') not in ('UP','DOWN')
+                or not isinstance(signal.get('explanation'),str) or not signal['explanation']):
+            raise StrategyError('Signal time, direction and explanation are required')
+        if not isinstance(signal.get('evidence',{}),dict):raise StrategyError('Signal evidence must be an object')
         with self.lock,self._connect() as c:
             cur=c.execute('''INSERT OR IGNORE INTO strategy_events
                 (account_id,mode,symbol,timeframe,strategy,confirmed_at,side,action,explanation,detail,event_at,strategy_version,regime,data_hash,evidence)
@@ -64,10 +87,12 @@ class SignalBook:
                 c.execute('INSERT INTO strategy_event_history(event_id,account_id,action,detail,event_at) VALUES (?,?,?,?,?)',
                           (row[0],acct,action,str(detail)[:1200],int(time.time())))
     def recent(self,account_id,limit=75):
+        _limit(limit)
         with self.lock,self._connect() as c:
             c.row_factory=sqlite3.Row
             return [dict(x) for x in c.execute('SELECT * FROM strategy_events WHERE account_id=? ORDER BY id DESC LIMIT ?', (account_id,limit))]
     def history(self,account_id,limit=250):
+        _limit(limit)
         with self.lock,self._connect() as c:
             c.row_factory=sqlite3.Row
             return [dict(x) for x in c.execute('SELECT * FROM strategy_event_history WHERE account_id=? ORDER BY id DESC LIMIT ?', (account_id,limit))]
@@ -90,8 +115,13 @@ class StrategySupervisor:
     def _execution_enabled(self):
         """A persisted application/account kill also gates virtual new entries."""
         risk=getattr(self.broker,'risk',None)
-        if risk is None:return
+        if risk is None or not callable(getattr(risk,'status',None)):
+            raise BridgeError('Persistent risk controls are unavailable; automatic entries are blocked')
         state=risk.status(self.broker.account_id,self.broker.mode)
+        if (not isinstance(state,dict) or not isinstance(state.get('global'),dict)
+                or not isinstance(state.get('killed'),bool)
+                or not isinstance(state['global'].get('killed'),bool)):
+            raise BridgeError('Persistent risk status is incomplete; automatic entries are blocked')
         if state.get('killed') or state.get('global',{}).get('killed'):
             raise BridgeError('Emergency stop is active; explicitly resume in Risk Control Center before starting new entries')
 
@@ -111,7 +141,10 @@ class StrategySupervisor:
         return risk.calendar_status(self.broker.account_id,self.broker.mode,symbol,kind)
 
     def status(self):
-        with self.lock:
+        # All identity-linked records must describe one broker session snapshot.
+        # stop() releases self.lock before requesting this snapshot, so it can
+        # still interrupt a quote while the network call holds broker.lock.
+        with self.broker.lock,self.lock:
             return {'active':self.active,'strategy':self.strategy,'profile':self.profile,
               'frame':self.frame,'symbol':self.symbol,'action':self.action,
               'account_id':self.account_id,'stake':self.stake,'expiry_minutes':self.expiry_minutes,
@@ -129,6 +162,7 @@ class StrategySupervisor:
               'paper_positions':self.paper.positions(self.broker.account_id) if self.broker.account_id else []}
 
     def configure(self,obj,*,validated_best=False):
+        _request_object(obj)
         # Consistent broker -> supervisor lock order (also used by HTTP kill).
         with self.broker.lock,self.lock:
             if self.active:raise BridgeError('Stop the current strategy monitor before switching rules')
@@ -136,9 +170,10 @@ class StrategySupervisor:
                 raise BridgeError('Connect to your Deriv broker account first')
             strat=obj.get('strategy');profile=obj.get('profile');frame=obj.get('timeframe')
             sym=obj.get('symbol');action=obj.get('action','monitor')
-            if strat not in STRATEGIES:raise StrategyError('Unknown Naked Forex strategy')
-            if profile not in PROFILES or frame not in PROFILES[profile]['timeframes']:
+            if not isinstance(strat,str) or strat not in STRATEGIES:raise StrategyError('Unknown Naked Forex strategy')
+            if not isinstance(profile,str) or profile not in PROFILES or not isinstance(frame,str) or frame not in PROFILES[profile]['timeframes']:
                 raise StrategyError('Timeframe does not match the trading style')
+            if not isinstance(sym,str):raise StrategyError('Market symbol must be text')
             if sym not in {s['symbol'] for s in self.broker.allowed_symbols}:
                 raise BridgeError('Choose an available Deriv market from the Broker tab')
             if action not in ('monitor','paper_trade','demo_trade'):
@@ -147,23 +182,23 @@ class StrategySupervisor:
             parameters=validate_parameters(obj.get('parameters'))
             thresholds=obj.get('regime_thresholds')
             classify_regime([],thresholds=thresholds)  # validate before activation
+            try:stake=float(obj.get('stake',1));horizon=float(obj.get('expiry_minutes',3));expiration=int(horizon)
+            except (TypeError,ValueError,OverflowError):raise StrategyError('Invalid stake/expiry') from None
+            if (isinstance(obj.get('stake'),bool) or isinstance(obj.get('expiry_minutes'),bool)
+                  or not math.isfinite(stake) or horizon!=expiration or not .35<=stake<=5 or not 1<=expiration<=15):
+                raise StrategyError('Demo robot stake must be $0.35–$5 and expiry 1–15 minutes')
             if action=='demo_trade':
                 if self.broker.mode!='demo':raise BridgeError('Only a Deriv DEMO account may execute automated orders')
                 if frame not in ('1m','5m','15m'):
                     raise BridgeError('Automatic Deriv Rise/Fall orders are limited to 1m/5m/15m signal charts; longer-term signals are monitor-only')
                 if self.broker.automation:raise BridgeError('Stop the existing Deriv indicator robot before starting the Naked Forex robot')
                 durations=self.broker.available_durations(sym)
-                requested=int(obj.get('expiry_minutes',3))
+                requested=expiration
                 if requested not in durations['UP'] or requested not in durations['DOWN']:
                     raise BridgeError('The selected market does not offer both Rise and Fall contracts '
                                       f'at {requested} minutes. Available UP: {durations["UP"]}; '
                                       f'DOWN: {durations["DOWN"]}. Choose a supported expiry or market. '
                                       'No automated orders started.')
-            try:stake=float(obj.get('stake',1));horizon=float(obj.get('expiry_minutes',3));expiration=int(horizon)
-            except (TypeError,ValueError,OverflowError):raise StrategyError('Invalid stake/expiry') from None
-            if (isinstance(obj.get('stake'),bool) or isinstance(obj.get('expiry_minutes'),bool)
-                  or not math.isfinite(stake) or horizon!=expiration or not .35<=stake<=5 or not 1<=expiration<=15):
-                raise StrategyError('Demo robot stake must be $0.35–$5 and expiry 1–15 minutes')
             self.strategy=strat;self.profile=profile;self.frame=frame;self.symbol=sym
             self.action=action;self.stake=stake;self.expiry_minutes=expiration
             self.account_id=self.broker.account_id;self.account_mode=self.broker.mode;self.last_candle=None
@@ -181,6 +216,8 @@ class StrategySupervisor:
         W/M are locally aggregated from daily UTC bars. We do not fabricate
         unsupported native weekly/monthly candle intervals.
         """
+        _frame(frame)
+        if not isinstance(research,bool):raise StrategyError('research must be a boolean')
         gran=GRANULARITIES[frame]
         # Match the adapter's supported single-request history bound. Longer
         # monthly research can legitimately need more data than this provides;
@@ -200,6 +237,7 @@ class StrategySupervisor:
         return rows
 
     def sample(self,frame):
+        _frame(frame)
         base=TIMEFRAMES[frame]
         if frame in ('1w','1mo'):
             # Simulated WEEKLY/MONTHLY bars, not a resampling of broker data.
@@ -208,8 +246,9 @@ class StrategySupervisor:
 
     def _history(self,obj):
         """One immutable source used for ALL competing patterns in a scan."""
+        _request_object(obj)
         src=obj.get('source','synthetic');frame=obj.get('timeframe','5m')
-        if frame not in TIMEFRAMES:raise StrategyError('Invalid timeframe')
+        _frame(frame)
         if src=='synthetic':rows=self.sample(frame)
         elif src=='csv':rows=candles_valid(obj.get('candles'))
         elif src=='deriv':
@@ -217,7 +256,7 @@ class StrategySupervisor:
                 if self.broker.mode=='disconnected':
                     raise BridgeError('Connect to Deriv before fetching authentic broker candles')
                 symbol=obj.get('symbol')
-                if symbol not in {s['symbol'] for s in self.broker.allowed_symbols}:
+                if not isinstance(symbol,str) or symbol not in {s['symbol'] for s in self.broker.allowed_symbols}:
                     raise BridgeError('Choose a market listed by Deriv')
                 rows=self.read_closed(symbol,frame,research=True)
         else:raise StrategyError('Unknown historical source')
@@ -244,7 +283,8 @@ class StrategySupervisor:
         return {'commission_per_trade':obj.get('commission_per_trade',0),
                 'spread_bps':obj.get('spread_bps',1),'slippage_bps':obj.get('slippage_bps',.5),
                 'parameters':obj.get('parameters'),'regime_filter':obj.get('regime_filter',False),
-                'source':src,'instrument':obj.get('symbol') or obj.get('instrument')}
+                'source':src,'instrument':obj.get('symbol') or obj.get('instrument'),
+                'initial_balance':obj.get('initial_balance',1000.)}
 
     def scan_all(self,obj):
         """Select using training data ONLY; retain successful Deriv-only selection.
@@ -252,6 +292,8 @@ class StrategySupervisor:
         Running again against the SAME held-out interval is not fresh validation.
         Scans never submit orders or change a running trading strategy.
         """
+        _request_object(obj)
+        classify_regime([],thresholds=obj.get('regime_thresholds'))
         with self.broker.lock:
             source_identity=(self.broker.account_id,self.broker.mode)
             rows,src,frame=self._history(obj)
@@ -261,7 +303,8 @@ class StrategySupervisor:
         expiry_bars=obj.get('expiry_bars',3);target=obj.get('target_win_rate',65)
         compared=compare_all(rows,profile=obj.get('profile','scalping'),timeframe=frame,
                              payout=payout,stake=stake,expiry_bars=expiry_bars,
-                             target_win_rate=target,**self._research_options(obj,src))
+                             target_win_rate=target,ranking_weights=obj.get('ranking_weights'),
+                             **self._research_options(obj,src))
         payout=float(payout);stake=float(stake);expiry_bars=int(expiry_bars);target=float(target)
         compared.update({'source':self._source_label(src),'source_kind':src,
                 'symbol':obj.get('symbol') if src=='deriv' else None,
@@ -300,12 +343,14 @@ class StrategySupervisor:
 
     def activate_best(self,obj):
         """Start the server-selected pattern. Client cannot supply or forge winner."""
+        _request_object(obj)
         with self.broker.lock,self.lock:
             selection=self.best_selection
             if self.active:raise BridgeError('Stop the current strategy before starting the selected best')
             if not selection or not selection['qualified'] or not selection['winner']:
                 raise BridgeError('No validated broker-data strategy. Run Compare All and check the holdout result.')
-            if int(time.time())-selection['created_at']>3600:
+            age=int(time.time())-selection['created_at']
+            if not 0<=age<=3600:
                 raise BridgeError('Comparison is over one hour old. Run the scan again before activation.')
             if (self.broker.mode=='disconnected' or self.broker.account_id!=selection['account_id']
                   or self.broker.mode!=selection['mode']):
@@ -317,8 +362,13 @@ class StrategySupervisor:
                 raise StrategyError('Invalid automatic action')
             if action=='demo_trade':
                 expected_minutes=TIMEFRAMES[selection['timeframe']]/60*selection['expiry_bars']
+                try:
+                    requested=float(obj.get('expiry_minutes',3))
+                    if isinstance(obj.get('expiry_minutes'),bool) or not math.isfinite(requested) or not requested.is_integer():
+                        raise ValueError()
+                except (ValueError,TypeError,OverflowError):raise StrategyError('Demo expiry must be a finite integer') from None
                 if (expected_minutes>15 or expected_minutes<1 or
-                    expected_minutes!=int(obj.get('expiry_minutes',3))):
+                    expected_minutes!=requested):
                     raise BridgeError(
                         f'Demo expiry must equal tested bar horizon: {expected_minutes:g} minutes. '
                         'Only 1–15 minute Deriv contracts are supported; choose shorter bars or another timeframe, rescan, then match contract expiry.')

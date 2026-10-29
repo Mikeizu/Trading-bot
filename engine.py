@@ -7,9 +7,30 @@ import math
 from statistics import fmean, pstdev
 
 
+def _period(value):
+    if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or value < 1 or int(value)!=value:
+        raise ValueError('period must be a positive integer')
+    return int(value)
+
+
+def _series(values, *, allow_none=False):
+    if not isinstance(values,(list,tuple)):
+        raise ValueError('values must be a sequence')
+    out=[]
+    for value in values:
+        if value is None and allow_none:
+            out.append(None);continue
+        if isinstance(value,bool):raise ValueError('Indicator values must be finite numbers')
+        try:number=float(value)
+        except (ValueError,TypeError,OverflowError):raise ValueError('Indicator values must be finite numbers') from None
+        if not math.isfinite(number) or abs(number)>1e100:
+            raise ValueError('Indicator values exceed the supported finite numerical range')
+        out.append(number)
+    return out
+
+
 def ema(values, period):
-    if period < 1:
-        raise ValueError('period must be positive')
+    period=_period(period);values=_series(values,allow_none=True)
     out = []
     last = None
     mult = 2 / (period + 1)
@@ -23,10 +44,12 @@ def ema(values, period):
 
 
 def sma(values, period):
+    period=_period(period);values=_series(values)
     return [None if i < period - 1 else fmean(values[i-period+1:i+1]) for i in range(len(values))]
 
 
 def rsi(values, period=14):
+    period=_period(period);values=_series(values)
     out = [None] * len(values)
     if len(values) <= period: return out
     gains = [max(values[i]-values[i-1], 0) for i in range(1, len(values))]
@@ -42,6 +65,8 @@ def rsi(values, period=14):
 
 
 def indicators(candles):
+    from naked_strategies import candles_valid
+    candles=candles_valid(candles)
     closes = [float(c['close']) for c in candles]
     e12, e26 = ema(closes, 12), ema(closes, 26)
     macd = [a-b for a,b in zip(e12, e26)]
@@ -55,8 +80,11 @@ def indicators(candles):
             dev = fmean([abs(v-mean) for v in typical])
             cci.append((typical[-1]-mean)/(0.015*dev) if dev else 0.0)
             s = pstdev(closes[i-19:i+1])
-            upper.append(mean if s == 0 else fmean(closes[i-19:i+1]) + 2*s)
-            lower.append(mean if s == 0 else fmean(closes[i-19:i+1]) - 2*s)
+            # Bollinger bands are centred on CLOSES even when close variance is
+            # zero. CCI's typical-price mean can differ due to asymmetric wicks.
+            close_mean=fmean(closes[i-19:i+1])
+            upper.append(close_mean + 2*s)
+            lower.append(close_mean - 2*s)
         else:
             cci.append(None); upper.append(None); lower.append(None)
         if i >= 13:
@@ -71,17 +99,29 @@ def indicators(candles):
 
 
 def signal_at(candles, values, idx, strategy):
+    if not isinstance(strategy,str) or strategy.upper() not in ('RSI','MACD','CCI','SMA','BOLLINGER','STOCHASTIC'):
+        raise ValueError('Unsupported indicator')
+    if isinstance(idx,bool) or not isinstance(idx,int) or not 0<=idx<len(candles):
+        raise ValueError('Signal index is outside candle history')
+    if not isinstance(values,dict):raise ValueError('Indicator values must be an object')
     if idx < 35: return None
     name = strategy.upper()
-    def v(key, at): return values[key][at]
+    def v(key, at):
+        sequence=values.get(key)
+        if not isinstance(sequence,(list,tuple)) or len(sequence)!=len(candles):
+            raise ValueError('Indicator series does not match candle history')
+        result=sequence[at]
+        return None if result is None else _series([result])[0]
     if name == 'RSI':
         current, prior = v('rsi',idx), v('rsi',idx-1)
         if prior is not None and current is not None:
             if prior < 30 <= current: return 'UP'
             if prior > 70 >= current: return 'DOWN'
     elif name == 'MACD':
-        prev = v('macd',idx-1)-v('macd_signal',idx-1)
-        curr = v('macd',idx)-v('macd_signal',idx)
+        a,b,c,d=v('macd',idx-1),v('macd_signal',idx-1),v('macd',idx),v('macd_signal',idx)
+        if any(value is None for value in (a,b,c,d)):return None
+        prev = a-b
+        curr = c-d
         if prev <= 0 < curr: return 'UP'
         if prev >= 0 > curr: return 'DOWN'
     elif name == 'CCI':
@@ -139,11 +179,15 @@ def backtest(candles, strategy='RSI', stake=10, duration=3, payout=.8, initial_b
     values = indicators(cleaned)
     balance = float(initial_balance)
     trades, equity = [], []
+    interval=min(b['time']-a['time'] for a,b in zip(cleaned,cleaned[1:]))
+    skipped_gaps=0
     idx = 35
     price_cost=(spread_bps/2+slippage_bps)/10000
     while idx + duration < len(cleaned):
         side = signal_at(cleaned, values, idx, strategy)
         if side and stake+commission_per_trade <= balance and stake <= balance * .05:
+            if any(cleaned[j+1]['time']-cleaned[j]['time']!=interval for j in range(idx,idx+duration)):
+                skipped_gaps+=1;idx+=1;continue
             direction=1 if side=='UP' else -1
             # Confirmation is only known after bar idx closes; next OPEN is the
             # earliest modeled entry. Exit is the final holding bar's close.
@@ -155,6 +199,7 @@ def backtest(candles, strategy='RSI', stake=10, duration=3, payout=.8, initial_b
             balance = round(balance + pnl,6)
             trades.append({'index':idx,'entry_index':idx+1,'exit_index':idx+duration,
                            'time':cleaned[idx]['time'],'entered_at':cleaned[idx+1]['time'],
+                           'exited_at':cleaned[idx+duration]['time']+interval,'holding_seconds':duration*interval,
                            'side':side,'entry':entry,'exit':exit_price,'pnl':pnl,
                            'gross_pnl':gross,'commission':commission_per_trade,'stake':stake,
                            'contract_win':contract_win,'win':pnl>0,'balance':balance,
@@ -162,7 +207,7 @@ def backtest(candles, strategy='RSI', stake=10, duration=3, payout=.8, initial_b
             equity.append({'x':idx+duration,'y':balance})
             idx += duration+1
         else: idx += 1
-    metrics=performance_metrics(trades,initial_balance)
+    metrics=performance_metrics(trades,initial_balance,period_seconds=cleaned[-1]['time']-cleaned[0]['time']+interval)
     costs={'commission_per_trade':commission_per_trade,'spread_bps':spread_bps,'slippage_bps':slippage_bps}
     return {'trades':trades,'trade_count':len(trades),'wins':metrics['wins'],
             'losses':metrics['losses'],'breakeven_trades':metrics['breakeven_trades'],
@@ -170,6 +215,8 @@ def backtest(candles, strategy='RSI', stake=10, duration=3, payout=.8, initial_b
             'net_pnl':metrics['pnl'],'ending_balance':metrics['ending_balance'],
             'max_drawdown_pct':metrics['max_drawdown_pct'],'equity':equity,
             'metrics':metrics,'costs':costs,
+            'data_integrity':{'inferred_bar_interval_seconds':interval,'missing_holding_bars_skipped':skipped_gaps,
+                              'interval_method':'Smallest supplied candle interval; no broker session calendar was provided.'},
             'provenance':dataset_provenance(cleaned,source='local_simulator_or_user_CSV',configuration={
                 'strategy':strategy,'stake':stake,'duration_bars':duration,'payout':payout,
                 'initial_balance':initial_balance,'costs':costs}),

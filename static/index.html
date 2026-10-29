@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0a101b"><meta name="description" content="MIKEIZU TradeLab PRO v4 — Auto Strategy Selector strategy automation, research and demo trading with official Deriv API.">
+<meta name="theme-color" content="#0a101b"><meta name="description" content="MIKEIZU TradeLab PRO — Local strategy research, paper trading and authorized Deriv demo controls.">
 <title>MIKEIZU TradeLab PRO · Research & Demo Terminal</title>
 <link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css">
 </head>
@@ -60,7 +60,7 @@
     <label>Deriv market (for official broker data and monitoring)<select id="naked-symbol"><option value="">Connect on Broker tab</option></select></label>
     <div class="input-grid"><label>Assumed payout %<input type="number" id="naked-payout" value="80" step="1" min="20" max="150"></label><label>Win-rate research target %<input type="number" id="naked-target" value="65" step="1" min="40" max="95"></label></div>
     <div class="input-grid"><label>Hypothetical stake ($)<input type="number" id="naked-stake" value="1" step="0.01" min="0.35" max="100"></label><label>Holding period (bars)<select id="naked-expiry-bars"><option value="1">1 bar</option><option value="2">2 bars</option><option value="3" selected>3 bars</option><option value="5">5 bars</option><option value="10">10 bars</option><option value="20">20 bars</option></select></label></div>
-    <details class="research-assumptions advanced-only"><summary>Execution-cost assumptions</summary><div class="input-grid"><label>Commission per trade<input type="number" id="research-commission" value="0" min="0" max="100" step="0.01"></label><label>Spread (basis points)<input type="number" id="research-spread" value="1" min="0" max="1000" step="0.1"></label></div><label>Slippage (basis points)<input type="number" id="research-slippage" value="0.5" min="0" max="1000" step="0.1"></label><p class="disclaimer-tiny">Zero means omitted from the model, not free execution. Set assumptions supported by your dataset and product. Theoretical fixed-payout research cannot reproduce every broker fill.</p></details>
+    <details class="research-assumptions advanced-only"><summary>Execution-cost assumptions</summary><div class="input-grid"><label>Commission per trade<input type="number" id="research-commission" value="0" min="0" max="100" step="0.01"></label><label>Spread (basis points)<input type="number" id="research-spread" value="1" min="0" max="100" step="0.1"></label></div><label>Slippage (basis points)<input type="number" id="research-slippage" value="0.5" min="0" max="100" step="0.1"></label><p class="disclaimer-tiny">Zero means omitted from the model, not free execution. Set assumptions supported by your dataset and product. Theoretical fixed-payout research cannot reproduce every broker fill.</p></details>
     <button id="naked-backtest" type="button" class="button button-primary full">⌁ Backtest selected strategy</button>
    </div>
   </article>
@@ -71,7 +71,7 @@
    <p class="disclaimer-tiny" id="naked-last">No completed-bar scan yet</p>
    <div class="settings-divider"></div>
    <div class="form-stack">
-     <label>Automatic action<select id="naked-action"><option value="monitor">Monitor and record signals · no orders</option><option value="paper_trade">Automatic virtual positions · 1% risk / 2R target</option><option value="demo_trade">Buy DEMO options on confirmed signals</option></select></label>
+     <label>Automatic action<select id="naked-action"><option value="monitor">Monitor and record signals · no orders</option><option value="paper_trade">Automatic virtual positions · 0.5% risk / 2R target</option><option value="demo_trade">Buy DEMO options on confirmed signals</option></select></label>
      <div id="naked-order-settings"><label>Demo contract expiry in minutes<select id="naked-expiry-minutes"><option value="1">1 minute</option><option value="2">2 minutes</option><option value="3" selected>3 minutes</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option></select></label></div>
      <div class="naked-hint" id="naked-auto-rule">Only short-duration demo options may execute. Higher timeframes are alert-only.</div>
      <button type="button" class="button button-primary full" id="naked-start">▶ Start strategy automation</button>
@@ -109,7 +109,7 @@
   <div class="naked-subtitle">Last 50 simulated research entries</div><div class="table-scroll"><table><thead><tr><th>ENTERED (UTC source time)</th><th>DIRECTION</th><th>ENTRY</th><th>EXIT</th><th>THEORETICAL P&amp;L</th></tr></thead><tbody id="naked-trades"></tbody></table></div>
  </section>
  <section class="panel naked-events-panel"><div class="panel-header"><div><span class="small-tag">04 / AUTOMATED POSITION PRACTICE</span><h2>Virtual positions (no broker funds)</h2></div><span class="naked-engine-pill" id="naked-paper-balance">$10,000.00 PAPER</span></div>
-  <p class="naked-result-copy">Paper positions on broker candle data use a pattern-extreme stop and fixed 2R target; 1% of virtual equity risked per trade. They do not execute in Deriv and exclude spread, funding and market gaps. The program must remain running for automatic updates.</p>
+  <p class="naked-result-copy">Paper positions queue for the next completed candle open, with a pattern-extreme stop, fixed 2R target and 0.5% default virtual equity risk. Estimated spread, slippage and adverse stop gaps are modeled; financing and actual liquidity are not. These are virtual positions, not Deriv orders. The program must remain running for automatic updates.</p>
   <div class="table-scroll"><table><thead><tr><th>MARKET / FRAME</th><th>DIRECTION</th><th>ENTRY</th><th>STOP</th><th>TARGET</th><th>STATUS</th><th>VIRTUAL P&amp;L</th></tr></thead><tbody id="naked-paper-rows"><tr><td class="empty-row" colspan="7">No paper positions yet.</td></tr></tbody></table></div></section>
  <section class="panel naked-events-panel"><div class="panel-header"><div><span class="small-tag">04 / BROKER SIGNAL AUDIT</span><h2>Confirmed price-action signals</h2></div><span class="naked-engine-pill">ACCOUNT-SCOPED JOURNAL</span></div>
   <div class="table-scroll"><table><thead><tr><th>LOGGED AT</th><th>DERIV MARKET</th><th>STRATEGY</th><th>SIDE</th><th>EVENT</th></tr></thead><tbody id="naked-events"><tr><td class="empty-row" colspan="5">Connect to Deriv and start monitoring to record strategy signals.</td></tr></tbody></table></div>

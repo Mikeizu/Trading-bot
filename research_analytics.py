@@ -14,6 +14,10 @@ STRATEGY_VERSION = '2.0.0'
 
 
 def wilson_interval(wins, count, z=1.96):
+    if (isinstance(wins,bool) or isinstance(count,bool) or not isinstance(wins,int) or not isinstance(count,int)
+            or not 0<=wins<=count or count<0 or isinstance(z,bool) or not isinstance(z,(int,float))
+            or not math.isfinite(z) or not 0<z<=10):
+        raise ValueError('Wilson interval requires valid counts and a finite positive z score')
     if not count:
         return None, None
     p = wins / count
@@ -24,9 +28,26 @@ def wilson_interval(wins, count, z=1.96):
 
 
 def performance_metrics(trades, starting_balance=1000.0, *, period_seconds=None):
-    starting_balance = float(starting_balance)
-    if not math.isfinite(starting_balance) or starting_balance <= 0:
+    def numeric(value,name,*,minimum=None):
+        if isinstance(value,bool):raise ValueError(name+' must be a finite number')
+        try:result=float(value)
+        except (TypeError,ValueError,OverflowError):raise ValueError(name+' must be a finite number') from None
+        if not math.isfinite(result) or abs(result)>1e100 or (minimum is not None and result<minimum):
+            raise ValueError(name+' is outside the supported numerical range')
+        return result
+    if not isinstance(trades,list) or len(trades)>100000:raise ValueError('Trade observations must be a bounded list')
+    starting_balance = numeric(starting_balance,'Starting balance',minimum=1e-100)
+    if starting_balance <= 0:
         raise ValueError('Starting balance must be finite and positive')
+    if period_seconds is not None:period_seconds=numeric(period_seconds,'Period duration',minimum=1e-100)
+    clean=[]
+    for trade in trades:
+        if not isinstance(trade,dict) or 'pnl' not in trade:raise ValueError('Each trade requires a finite P&L')
+        clean.append({**trade,'pnl':numeric(trade['pnl'],'Trade P&L'),
+            'holding_seconds':numeric(trade.get('holding_seconds',0),'Holding duration',minimum=0),
+            'commission':numeric(trade.get('commission',0),'Commission',minimum=0),
+            'stake':numeric(trade.get('stake',0),'Stake',minimum=0)})
+    trades=clean
     equity = peak = starting_balance
     max_dd = max_dd_pct = 0.0
     wins = losses = longest_win = longest_loss = win_streak = loss_streak = 0
@@ -68,7 +89,7 @@ def performance_metrics(trades, starting_balance=1000.0, *, period_seconds=None)
     variance = statistics.pstdev(returns) if len(returns) > 1 else 0.0
     duration = sum(max(0, float(t.get('holding_seconds', 0))) for t in trades)
     costs = sum(float(t.get('commission', 0.0)) for t in trades)
-    return {
+    result = {
         'starting_balance':starting_balance,
         'trades': count, 'wins': wins, 'losses': losses,
         'breakeven_trades': count - wins - losses,
@@ -94,6 +115,14 @@ def performance_metrics(trades, starting_balance=1000.0, *, period_seconds=None)
         'equity_curve': equity_curve, 'drawdown_curve': drawdown_curve,
         'equity_method': 'Closed-trade equity; intrabar mark-to-market drawdown is unavailable.',
     }
+    def check_finite(value):
+        if isinstance(value,float) and not math.isfinite(value):raise ValueError('Derived analytics exceed supported numerical range')
+        if isinstance(value,dict):
+            for item in value.values():check_finite(item)
+        elif isinstance(value,list):
+            for item in value:check_finite(item)
+    check_finite(result)
+    return result
 
 
 def dataset_provenance(rows, *, source='unspecified', instrument=None, timeframe=None, configuration=None):

@@ -5,6 +5,8 @@ Never expose on a public interface. Startup binds only to localhost.
 from __future__ import annotations
 import argparse
 import hashlib
+import math
+import re
 import json
 import os
 import sqlite3
@@ -19,7 +21,7 @@ from urllib.parse import urlparse
 import server as simulator
 from deriv_bridge import BrokerController, BridgeError, UnknownExecution
 from engine import indicators,signal_at
-from naked_strategies import StrategyError, STRATEGIES,PROFILES
+from naked_strategies import StrategyError, STRATEGIES,PROFILES,candles_valid as simulator_candles_valid
 from strategy_extension import StrategySupervisor
 from risk_engine import RiskError
 
@@ -76,6 +78,7 @@ class Journal:
                 conn.execute('PRAGMA busy_timeout=10000')
                 conn.execute('PRAGMA journal_mode=WAL')
                 conn.execute('PRAGMA synchronous=FULL')
+                conn.execute('BEGIN IMMEDIATE')
                 yield conn
                 conn.commit()
             except Exception:
@@ -85,6 +88,20 @@ class Journal:
     def reserve(self,account_id,mode,q):
         now=int(time.time())
         with self.db() as c:
+            self._require_integrity(c)
+            if (not isinstance(account_id,str) or not account_id or len(account_id)>128
+                    or mode not in ('demo','real') or not isinstance(q,dict)):
+                raise ValueError('Valid order identity and terms required')
+            if (not isinstance(q.get('token'),str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,128}',q['token'])
+                    or not isinstance(q.get('symbol'),str) or not re.fullmatch(r'\w{2,30}',q['symbol'])
+                    or q.get('side') not in ('UP','DOWN')):
+                raise ValueError('Invalid order nonce, instrument, or side')
+            for key in ('stake','ask_price','minutes'):
+                value=q.get(key)
+                if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or not 0<value<=1e9:
+                    raise ValueError('Invalid order '+key)
+            if q['minutes']!=int(q['minutes']) or q['minutes']>15:raise ValueError('Invalid order expiry')
+            if not isinstance(q.get('context',{}),dict):raise ValueError('Order context must be an object')
             # Context is a fixed allowlist of research metadata, never credentials.
             context={k:q.get('context',{}).get(k) for k in
                 ('strategy','strategy_version','timeframe','signal_at','regime','rationale','data_hash')
@@ -100,18 +117,44 @@ class Journal:
 
     def update(self,order_id,status,contract_id=None,pnl=None):
         with self.db() as c:
-            row=c.execute('SELECT account_id,mode,status FROM orders WHERE id=?',(order_id,)).fetchone()
+            self._require_integrity(c)
+            row=c.execute('SELECT * FROM orders WHERE id=?',(order_id,)).fetchone()
             if row is None:raise ValueError('Order not found')
             allowed={'PENDING':{'OPEN','UNCERTAIN','REJECTED'},'OPEN':{'OPEN','CLOSED','UNCERTAIN'},
                 'UNCERTAIN':{'UNCERTAIN','OPEN','CLOSED'},'CLOSED':{'CLOSED'},'REJECTED':{'REJECTED'}}
             if status not in allowed.get(row['status'],set()):raise ValueError('Invalid order state transition')
-            if status=='CLOSED' and (pnl is None or not simulator.math.isfinite(float(pnl))):
+            if status in ('OPEN','CLOSED') and (not isinstance(contract_id,(str,int)) or isinstance(contract_id,bool) or not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',str(contract_id))):
+                raise ValueError('A verified contract identifier is required')
+            if row['contract_id'] and row['contract_id']!=str(contract_id):
+                raise ValueError('Cannot replace an existing contract identifier')
+            if status=='CLOSED' and (isinstance(pnl,bool) or not isinstance(pnl,(int,float)) or not math.isfinite(pnl)):
                 raise ValueError('Settlement requires finite broker P&L')
+            if row['status'] in ('CLOSED','REJECTED'):
+                if status!=row['status'] or contract_id!=row['contract_id'] or pnl!=row['pnl']:
+                    raise ValueError('Final order records are immutable')
+                return
             c.execute('UPDATE orders SET status=?,contract_id=?,pnl=?,updated_at=? WHERE id=?',
                       (status,contract_id,pnl,int(time.time()),order_id))
             self._audit(c,{'event':'ORDER_'+status,'order_id':order_id,'account_id':row['account_id'],
                 'mode':row['mode'],'previous_status':row['status'],'contract_id':contract_id,
                 'pnl':pnl,'time':int(time.time())})
+
+    @staticmethod
+    def _require_integrity(c):
+        """Check the materialized rows before any mutation can re-audit them."""
+        actual={row['id']:dict(row) for row in c.execute('SELECT * FROM orders ORDER BY id')}
+        previous='0'*64;snapshots={}
+        try:
+            for row in c.execute('SELECT * FROM order_audit ORDER BY id'):
+                digest=hashlib.sha256((previous+row['event_json']).encode()).hexdigest()
+                if row['previous_hash']!=previous or row['event_hash']!=digest:raise ValueError()
+                previous=row['event_hash'];event=json.loads(row['event_json'])
+                if not isinstance(event,dict):raise ValueError()
+                if event.get('order_snapshot'):
+                    snapshots[event['order_id']]=event['order_snapshot']
+            if snapshots!=actual:raise ValueError()
+        except (ValueError,KeyError,TypeError):
+            raise ValueError('Order journal integrity failure; restore or investigate before mutation') from None
 
     @staticmethod
     def _audit(c,event):
@@ -251,7 +294,7 @@ class API(simulator.API):
             if not 0<=n<=1300000:return self.error_json('Payload exceeds 1.3 MB',413)
             if self.headers.get('Content-Type','').split(';')[0].strip()!='application/json':
                 return self.error_json('JSON Content-Type required',415)
-            obj=json.loads(self.rfile.read(n) or b'{}')
+            obj=json.loads(self.rfile.read(n) or b'{}',parse_constant=simulator.reject_json_constant)
             if not isinstance(obj,dict):raise StrategyError('JSON object expected')
             if path=='/api/strategy/backtest':return self.send_json(strategy_supervisor.research(obj))
             if path=='/api/strategy/scan-all':return self.send_json(strategy_supervisor.scan_all(obj))
@@ -286,11 +329,11 @@ class API(simulator.API):
                     'workers':{name:worker.is_alive() for name,worker in WORKERS.items()},
                     'risk':risk_status(),'live_execution':False,
                     'audit_integrity':journal.audit(limit=1)['integrity'] and broker.risk.verify_audit()['valid']})
-        except (RiskError,ValueError):return self.error_json('Risk state unavailable; new orders remain blocked',503)
-        if route=='/api/strategy/catalog':return self.send_json({'strategies':STRATEGIES,'profiles':PROFILES})
-        if route=='/api/strategy/status':return self.send_json(strategy_supervisor.status())
-        if route=='/api/deriv/status':return self.send_json(broker.status())
-        if route=='/api/deriv/health':return self.send_json({'ok':True,'mode':broker.mode,'live_enabled':broker.allow_live})
+            if route=='/api/strategy/catalog':return self.send_json({'strategies':STRATEGIES,'profiles':PROFILES})
+            if route=='/api/strategy/status':return self.send_json(strategy_supervisor.status())
+            if route=='/api/deriv/status':return self.send_json(broker.status())
+            if route=='/api/deriv/health':return self.send_json({'ok':True,'mode':broker.mode,'connected':broker.status()['connected'],'live_enabled':False})
+        except Exception:return self.error_json('Operational state unavailable; new orders remain blocked',503)
         return super().do_GET()
 
     def do_POST(self):
@@ -307,11 +350,12 @@ class API(simulator.API):
             if not 0<=length<=65536:return self.error_json('Invalid payload size',413)
             if self.headers.get('Content-Type','').split(';')[0].strip()!='application/json':
                 return self.error_json('JSON Content-Type required',415)
-            obj=json.loads(self.rfile.read(length) or b'{}')
+            obj=json.loads(self.rfile.read(length) or b'{}',parse_constant=simulator.reject_json_constant)
             if not isinstance(obj,dict):raise BridgeError('Expected JSON object')
             if path=='/api/deriv/accounts':
                 return self.send_json({'accounts':broker.list_accounts(obj.get('app_id',''),obj.get('token',''))})
             if path=='/api/deriv/connect':
+                strategy_supervisor.stop('Broker account connection is changing; restart explicitly after verification')
                 return self.send_json(broker.connect(obj.get('app_id',''),obj.get('token',''),obj.get('account_id',''),obj.get('mode','demo')))
             if path=='/api/deriv/disconnect':
                 strategy_supervisor.stop('Broker disconnected')
@@ -405,12 +449,22 @@ def auto_loop(stop):
         with broker.lock:
             if broker.mode!='demo' or not broker.automation:continue
             try:
-                candles=broker.get_candles(broker.auto_symbol)
+                entry_guard()
+                broker.reconcile()
+                candles=simulator_candles_valid(broker.get_candles(broker.auto_symbol))
                 # Only fully completed minute bars; the latest one may be incomplete.
                 cutoff=(int(time.time())//60)*60
                 done=[c for c in candles if c['time'] < cutoff]
                 if len(done)<55:continue
                 epoch=done[-1]['time']
+                if not 0<=int(time.time())-epoch<=180:
+                    broker.last_message='Waiting for fresh completed one-minute candles; no new order.'
+                    continue
+                calendar=broker.risk.calendar_status(broker.account_id,broker.mode,
+                    broker.auto_symbol,broker._market_kind(broker.auto_symbol))
+                if not calendar['allowed']:
+                    broker.last_message='Automatic entries paused by calendar controls: '+'; '.join(calendar['reasons'])
+                    continue
                 if broker.last_auto_candle==epoch:continue
                 broker.last_auto_candle=epoch
                 sig=signal_at(done,indicators(done),len(done)-1,broker.auto_strategy)
@@ -419,7 +473,7 @@ def auto_loop(stop):
                     outstanding=journal.unresolved(broker.account_id)
                     if any(r['status'] in ('UNCERTAIN','PENDING') for r in outstanding):
                         raise BridgeError('Uncertain trade requires investigation before automation continues')
-                    if outstanding or (broker.transport.portfolio().get('contracts') or []):
+                    if outstanding or broker._positions():
                         continue  # wait for existing contract to settle before next demo signal
                     broker.demo_auto_once(sig)
                     broker.last_message=f'Broker DEMO {sig} signal submitted for {broker.auto_symbol}.'

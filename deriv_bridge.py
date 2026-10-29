@@ -63,16 +63,28 @@ def _positive(value, minimum, maximum, name):
         raise BridgeError(f'{name} must be numeric')
     try:
         val = float(value)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         raise BridgeError(f'{name} must be numeric') from None
     if not math.isfinite(val) or not minimum <= val <= maximum:
         raise BridgeError(f'{name} must be between {minimum} and {maximum}')
     return round(val, 2)
 
 
+def _credentials(app_id, pat):
+    """Reject malformed headers without reflecting secret input in errors."""
+    if not isinstance(app_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]{3,80}', app_id):
+        raise BridgeError('Invalid App ID')
+    if (not isinstance(pat, str) or not 1 <= len(pat) <= 8192
+            or any(ord(c) < 33 or ord(c) > 126 for c in pat)):
+        raise BridgeError('A nonempty valid Personal Access Token is required')
+
+
 def check_otp_url(url: str, expected_mode: str) -> str:
     """Reject untrusted URLs and avoid passing a token to a third-party host."""
-    p = urlparse(url)
+    if not isinstance(url, str) or expected_mode not in ('demo','real'):
+        raise BridgeError('Invalid official broker connection URL or account mode')
+    try:p = urlparse(url)
+    except ValueError:raise BridgeError('Invalid official broker connection URL') from None
     if p.scheme != 'wss' or p.netloc != 'api.derivws.com' or p.path != f'/trading/v1/options/ws/{expected_mode}':
         raise BridgeError('Account mode / official WebSocket URL mismatch — connection cancelled')
     if p.fragment or not re.fullmatch(r'otp=[^&#\s]+', p.query):
@@ -87,17 +99,30 @@ def normalize_accounts(payload):
     if isinstance(data, list):
         raw = data
     elif isinstance(data, dict):
-        raw = data.get('accounts') or data.get('items') or [data]
+        if 'accounts' in data:
+            raw=data['accounts']
+        elif 'items' in data:
+            raw=data['items']
+        else:raw=[data]
     else:
         raise BridgeError('Unrecognized accounts response from Deriv')
+    if not isinstance(raw,list):
+        raise BridgeError('Unrecognized accounts response from Deriv')
     out = []
+    seen = {}
     for acc in raw:
         if not isinstance(acc, dict):
             continue
-        account_id = str(acc.get('account_id') or acc.get('id') or '')
+        account_id = acc.get('account_id') or acc.get('id') or ''
         typ = str(acc.get('account_type') or acc.get('type') or '').lower()
-        if ACCOUNT_ID.fullmatch(account_id) and typ in ('demo','real'):
-            out.append({'account_id':account_id,'account_type':typ,'currency':acc.get('currency'), 'balance':acc.get('balance')})
+        if isinstance(account_id,str) and ACCOUNT_ID.fullmatch(account_id) and typ in ('demo','real'):
+            account={'account_id':account_id,'account_type':typ,'currency':acc.get('currency'), 'balance':acc.get('balance')}
+            if account_id in seen:
+                if seen[account_id] != account:
+                    raise BridgeError('Broker account catalogue contains conflicting account identities')
+                continue
+            seen[account_id]=account
+            out.append(account)
     return out
 
 
@@ -202,6 +227,7 @@ class DerivTransport:
 
     @staticmethod
     def _http(method, path, app_id, token):
+        _credentials(app_id,token)
         req = Request(API_ROOT + path, method=method, headers={
             'Authorization': 'Bearer ' + token,
             'Deriv-App-ID': app_id,
@@ -238,6 +264,8 @@ class DerivTransport:
             raise BridgeError(f'Deriv API HTTP {exc.code} — request failed. Check your account status and API permissions.') from None
         except (URLError, TimeoutError, OSError):
             raise BridgeError('Cannot reach the Deriv REST API. Check internet access.') from None
+        except (ValueError,TypeError,UnicodeError):
+            raise BridgeError('Deriv REST response or request format is invalid; no broker operation completed') from None
 
     @staticmethod
     def _websocket(url):
@@ -248,20 +276,21 @@ class DerivTransport:
         return websocket.create_connection(url, timeout=12, enable_multithread=True)
 
     def accounts(self, app_id, pat):
+        _credentials(app_id,pat)
         return normalize_accounts(self.http('GET', '/trading/v1/options/accounts', app_id, pat))
 
     def connect(self, app_id, pat, account_id, mode):
         if mode not in ('demo','real'):
             raise BridgeError('Only demo/real accounts are supported')
-        if not ACCOUNT_ID.fullmatch(account_id):
+        if not isinstance(account_id,str) or not ACCOUNT_ID.fullmatch(account_id):
             raise BridgeError('Invalid account ID')
-        if not re.fullmatch(r'[\w-]{3,80}', app_id):
-            raise BridgeError('Invalid App ID')
+        _credentials(app_id,pat)
         accounts = self.accounts(app_id, pat)
         if not any(a['account_id']==account_id and a['account_type']==mode for a in accounts):
             raise BridgeError('The selected account is not listed as a ' + mode + ' account')
         payload = self.http('POST', '/trading/v1/options/accounts/'+quote(account_id)+'/otp', app_id, pat)
-        url = (payload.get('data') or {}).get('url')
+        data=payload.get('data') if isinstance(payload,dict) else None
+        url=data.get('url') if isinstance(data,dict) else None
         if not isinstance(url, str):
             raise BridgeError('Deriv did not return a WebSocket URL')
         check_otp_url(url, mode)
@@ -271,7 +300,7 @@ class DerivTransport:
                 self.ws = self.ws_factory(url)
             except Exception:
                 raise BridgeError('Cannot connect to Deriv WebSocket. Check your account and network.') from None
-        return next(a for a in accounts if a['account_id']==account_id)
+        return next(a for a in accounts if a['account_id']==account_id and a['account_type']==mode)
 
     def close(self):
         with self.lock:
@@ -293,18 +322,25 @@ class DerivTransport:
                 # Responses to other requests/subscriptions are ignored. The v2 connector
                 # uses one-off RPC calls, so there should be no streaming interleaving.
                 for _ in range(12):
-                    if time.monotonic() >= deadline:
+                    remaining=deadline-time.monotonic()
+                    if remaining <= 0:
                         raise TimeoutError('Broker response deadline exceeded')
+                    if callable(getattr(self.ws,'settimeout',None)):
+                        self.ws.settimeout(min(12,remaining))
                     msg = json.loads(self.ws.recv())
                     if not isinstance(msg, dict):
                         raise ValueError('Malformed broker reply')
-                    if msg.get('req_id') != req_id:
+                    reply_id=msg.get('req_id')
+                    if isinstance(reply_id,bool) or not isinstance(reply_id,int) or reply_id != req_id:
                         continue
-                    if msg.get('error'):
+                    if 'error' in msg and msg['error'] is not None:
                         err = msg['error']
                         # Do not reflect raw broker text, echo_req, OTPs, or URLs.
                         code = err.get('code', '') if isinstance(err, dict) else ''
-                        code = code if isinstance(code, str) and re.fullmatch(r'[A-Za-z0-9_]{1,80}', code) else 'RequestRejected'
+                        if (not isinstance(err,dict) or not isinstance(code,str)
+                                or not re.fullmatch(r'[A-Za-z0-9_]{1,80}',code)
+                                or (purchasing and msg.get('buy'))):
+                            raise ValueError('Ambiguous broker error response')
                         raise BrokerRejection(f'Deriv {code}: Request rejected; inspect account permissions and broker contract availability.')
                     self.last_response_at = time.time()
                     return msg
@@ -334,10 +370,17 @@ class DerivTransport:
         # display_name -> underlying_symbol_name. See the official API migration guide.
         payload = self.rpc({'active_symbols':'brief'})
         symbols = normalize_active_symbols(payload)
-        self.market_metadata = {
-            (item.get('underlying_symbol') or item.get('symbol')): {'market': item.get('market')}
-            for item in payload['active_symbols'] if isinstance(item, dict)
-        }
+        permitted={item['symbol'] for item in symbols}
+        self.market_metadata={}
+        for item in payload['active_symbols']:
+            if not isinstance(item,dict):continue
+            code=item.get('underlying_symbol') or item.get('symbol')
+            if not isinstance(code,str) or code not in permitted:continue
+            kind=item.get('market')
+            if code in self.market_metadata and self.market_metadata[code]['market']!=kind:
+                self.market_metadata[code]={'market':None}
+            elif code not in self.market_metadata:
+                self.market_metadata[code]={'market':kind}
         return symbols
 
     def contracts_for(self, symbol):
@@ -348,9 +391,9 @@ class DerivTransport:
     def candles(self, symbol, count=140, granularity=60):
         if not isinstance(symbol, str) or not SYMBOL.fullmatch(symbol):
             raise BridgeError('Invalid market symbol')
-        if granularity not in (60,120,180,300,600,900,1800,3600,7200,14400,28800,86400):
+        if isinstance(granularity,bool) or not isinstance(granularity,int) or granularity not in (60,120,180,300,600,900,1800,3600,7200,14400,28800,86400):
             raise BridgeError('Invalid Deriv candle granularity')
-        if not 1 <= count <= 2500:
+        if isinstance(count,bool) or not isinstance(count,int) or not 1 <= count <= 2500:
             raise BridgeError('Invalid candle history count')
         result = self.rpc({'ticks_history':symbol,'end':'latest','style':'candles','granularity':granularity,'count':count})
         source = result.get('candles')
@@ -359,8 +402,12 @@ class DerivTransport:
         rows=[]
         for c in source:
             try:
+                if not isinstance(c,dict) or any(isinstance(c.get(k),bool) for k in ('open','high','low','close','epoch')):
+                    raise ValueError('Boolean or invalid candle')
                 row={k:float(c[k]) for k in ('open','high','low','close')}
-                row['time']=int(c['epoch'])
+                epoch=float(c['epoch'])
+                if not math.isfinite(epoch) or not epoch.is_integer():raise ValueError('Invalid epoch')
+                row['time']=int(epoch)
                 if (not all(math.isfinite(row[k]) and row[k]>0 for k in ('open','high','low','close'))
                         or row['high'] < max(row['open'], row['close'])
                         or row['low'] > min(row['open'], row['close'])
@@ -451,9 +498,9 @@ class BrokerController:
                 self.currency = currency if isinstance(currency, str) else ''
                 self._read_balance()
                 self.allowed_symbols=self.transport.symbols()
-                self._positions()  # Establish a complete broker snapshot on each connect.
+                positions=self._positions()  # Establish a complete broker snapshot on each connect.
                 self.reconcile()
-                self.connection_state = ('reconciliation_required' if self.db.unresolved(self.account_id) else 'ready')
+                self.connection_state = ('reconciliation_required' if positions or self.db.unresolved(self.account_id) else 'ready')
             except Exception:
                 self.disconnect()
                 raise
@@ -476,7 +523,14 @@ class BrokerController:
         with self.lock:
             if self.mode == 'disconnected':
                 raise BridgeError('Connect a Deriv account first')
-            latest = self.transport.symbols()
+            self.quote=None
+            # A failed catalogue refresh must not leave stale permissions usable.
+            self.allowed_symbols=[]
+            try:latest=self.transport.symbols()
+            except Exception:
+                self.automation=False
+                self.last_error='Market catalogue refresh failed; trading is blocked until a successful refresh.'
+                raise
             self.allowed_symbols = latest
             if not latest or (self.auto_symbol and self.auto_symbol not in {s['symbol'] for s in latest}):
                 self.automation = False  # fail closed if symbols disappeared
@@ -565,7 +619,7 @@ class BrokerController:
 
     def get_candles(self, symbol):
         with self.lock:
-            if symbol not in {s['symbol'] for s in self.allowed_symbols}:
+            if not isinstance(symbol,str) or symbol not in {s['symbol'] for s in self.allowed_symbols}:
                 raise BridgeError('Choose an available Deriv market')
             return self.transport.candles(symbol)
 
@@ -573,7 +627,7 @@ class BrokerController:
         with self.lock:
             if self.mode not in ('demo', 'real'):
                 raise BridgeError('Connect your Deriv account before checking available expiries')
-            if symbol not in {s['symbol'] for s in self.allowed_symbols}:
+            if not isinstance(symbol,str) or symbol not in {s['symbol'] for s in self.allowed_symbols}:
                 raise BridgeError('Choose a market offered to your account')
             result = self.transport.contracts_for(symbol)
             # Never trust the client to provide fabricated choices.
@@ -592,6 +646,7 @@ class BrokerController:
     def new_quote(self, symbol, side, stake, minutes, *, internal=False, context=None):
         with self.lock:
             self.quote = None  # A failed refresh must not leave an older executable quote.
+            if not isinstance(internal,bool):raise BridgeError('Automatic order flag must be a boolean')
             if self.mode=='real':
                 raise BridgeError('Real accounts are read-only; live order execution is unavailable')
             stake=_positive(stake,.35,50,'Stake')
@@ -606,7 +661,7 @@ class BrokerController:
                 raise BridgeError('Expiry minutes must be an integer') from None
             if not 1<=minutes<=15:raise BridgeError('Expiry minutes must be 1–15')
             if side not in ('UP','DOWN'):raise BridgeError('Invalid contract direction')
-            if symbol not in {s['symbol'] for s in self.allowed_symbols}:
+            if not isinstance(symbol,str) or symbol not in {s['symbol'] for s in self.allowed_symbols}:
                 raise BridgeError('Choose an active Deriv market')
             offers = self.available_durations(symbol)
             if minutes not in offers[side]:
@@ -655,6 +710,7 @@ class BrokerController:
 
     def buy_quote(self, token, *, internal=False):
         with self.lock:
+            if not isinstance(internal,bool):raise BridgeError('Automatic order flag must be a boolean')
             q=self.quote
             if not q or q['token']!=token or self.mode!=q['mode'] or self.account_id!=q['account_id']:
                 raise BridgeError('Missing, expired, or already consumed proposal')
@@ -729,6 +785,10 @@ class BrokerController:
     def reconcile(self):
         with self.lock:
             if self.mode=='disconnected':return
+            # Verify BEFORE updates; a legitimate settlement cannot launder an
+            # unaudited change to materialized order rows by replacing snapshots.
+            if not self.db.audit(self.account_id)['integrity']:
+                raise BridgeError('Order journal integrity check failed; reconciliation is blocked')
             for order in self.db.unresolved(self.account_id):
                 if not order['contract_id']:
                     # Even if no position appears, it may have already expired.
@@ -737,11 +797,13 @@ class BrokerController:
                 contract=self.transport.contract(order['contract_id'])
                 if not isinstance(contract, dict):
                     raise BridgeError('Broker contract response is incomplete; reconciliation is blocked')
+                reported_id=contract.get('contract_id')
+                if reported_id is not None and str(reported_id)!=str(order['contract_id']):
+                    raise BridgeError('Broker contract identity mismatch; reconciliation is blocked')
                 status=str(contract.get('status') or '').lower()
                 if contract.get('is_sold') in (1,True,'1') or status in ('sold','won','lost'):
-                    reported_id = contract.get('contract_id')
-                    if reported_id is not None and str(reported_id) != str(order['contract_id']):
-                        raise BridgeError('Broker contract identity mismatch; reconciliation is blocked')
+                    if status and status not in ('sold','won','lost'):
+                        raise BridgeError('Broker settlement state is inconsistent; reconciliation is blocked')
                     pnl = _finite(contract.get('profit'), 'settlement profit')
                     self.db.update(order['id'],'CLOSED',order['contract_id'],pnl)
                     self.risk.resolve(order['nonce'], 'CLOSED')
