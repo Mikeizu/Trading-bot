@@ -1,0 +1,16 @@
+*.db
+*.db-shm
+*.db-wal
+.venv/
+__pycache__/
+*.pyc
+.env
+credentials*
+*.token
+.pytest_cache/
+.cache/
+data/
+dist/
+test-results/
+playwright-report/
+*.log
