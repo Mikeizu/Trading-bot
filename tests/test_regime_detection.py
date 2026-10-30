@@ -13,14 +13,14 @@ class RegimeTests(unittest.TestCase):
     def test_trend_continuation_eligible_in_uptrend(self):
         result=classify_regime(rows_for([100+i*.2 for i in range(80)]))
         self.assertEqual(result['regime'],'trending_up')
-        self.assertIn('trendy_kangaroo',result['eligible_strategies'])
-        self.assertNotIn('wammie',result['eligible_strategies'])
+        self.assertIn('EMA_CROSS',result['eligible_strategies'])
+        self.assertNotIn('BOLLINGER_REENTRY',result['eligible_strategies'])
         self.assertIsNone(result['confidence'])
 
     def test_range_suspends_continuation(self):
         result=classify_regime(rows_for([100+.2*math.sin(i) for i in range(80)]))
         self.assertEqual(result['regime'],'ranging')
-        self.assertNotIn('trendy_kangaroo',result['eligible_strategies'])
+        self.assertNotIn('EMA_CROSS',result['eligible_strategies'])
 
     def test_insufficient_and_invalid_data_blocks_entries(self):
         self.assertFalse(classify_regime([])['trading_allowed'])

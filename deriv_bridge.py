@@ -617,11 +617,11 @@ class BrokerController:
             raise BridgeError('Risk control blocked order: ' + str(exc)) from None
         return decision
 
-    def get_candles(self, symbol):
+    def get_candles(self, symbol, count=140):
         with self.lock:
             if not isinstance(symbol,str) or symbol not in {s['symbol'] for s in self.allowed_symbols}:
                 raise BridgeError('Choose an available Deriv market')
-            return self.transport.candles(symbol)
+            return self.transport.candles(symbol,count=count)
 
     def available_durations(self, symbol):
         with self.lock:

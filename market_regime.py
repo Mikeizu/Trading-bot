@@ -9,7 +9,6 @@ import math
 import statistics
 import time
 
-STRATEGIES = ('kangaroo', 'shadow', 'belt', 'wammie', 'moolah', 'last_kiss', 'trendy_kangaroo')
 DEFAULT_THRESHOLDS = {
     'lookback': 50,
     'trend_efficiency': 0.35,
@@ -22,14 +21,23 @@ DEFAULT_THRESHOLDS = {
 }
 
 
+def _eligible(regime):
+    # Catalog is imported lazily so indicator calculations never depend on this
+    # classifier and every advertised ID shares the same eligibility rules.
+    from indicator_strategies import STRATEGIES
+    return tuple(name for name,meta in STRATEGIES.items() if regime in meta['eligible_regimes'])
+
+
 def _result(regime, reasons, metrics, eligible=(), *, news_state='unavailable'):
+    from indicator_strategies import STRATEGIES
+
     allowed = bool(eligible)
     return {
         'regime': regime, 'classification': regime, 'certainty': 'heuristic',
         'confidence': None, 'reasons': reasons, 'metrics': metrics,
         'trading_allowed': allowed, 'eligible_strategies': list(eligible),
         'suspended_strategies': [s for s in STRATEGIES if s not in eligible],
-        'news_state': news_state, 'version': '1.0.0',
+        'news_state': news_state, 'version': '2.0.0',
         'limitations': ['Price-only heuristic; classifications can be wrong.',
                        'No liquidity, spread, multi-timeframe or economic-calendar inference from OHLC.',
                        'Thresholds require independent historical validation.'],
@@ -117,8 +125,8 @@ def classify_regime(rows, *, thresholds=None, news_state='unavailable', require_
     if efficiency >= config['trend_efficiency'] and abs(displacement) >= config['trend_displacement_atr']:
         state = 'trending_up' if displacement > 0 else 'trending_down'
         return _result(state, ['Directional efficiency and fast/slow average displacement exceed configured trend thresholds.'],
-                       metrics, ('last_kiss', 'trendy_kangaroo'), news_state=news_state)
+                       metrics, _eligible(state), news_state=news_state)
     if efficiency <= config['range_efficiency']:
         return _result('ranging', ['Low directional efficiency suggests a range; continuation strategy suspended.'],
-                       metrics, ('kangaroo', 'shadow', 'belt', 'wammie', 'moolah', 'last_kiss'), news_state=news_state)
+                       metrics, _eligible('ranging'), news_state=news_state)
     return _result('uncertain', ['Trend and range rules disagree; new entries suspended.'], metrics, news_state=news_state)

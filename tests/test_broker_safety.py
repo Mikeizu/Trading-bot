@@ -278,7 +278,7 @@ class BrokerSafetyTests(unittest.TestCase):
         self.assertEqual(self.store.history('DOT90000001')[0]['status'], 'OPEN')
 
     def test_rationale_is_whitelisted_and_durable(self):
-        quote = self.quote(context={'strategy': 'last_kiss', 'strategy_version': '1',
+        quote = self.quote(context={'strategy': 'EMA_CROSS', 'strategy_version': '1',
                                     'rationale': 'Closed-bar retest', 'token': 'must-not-store'})
         self.broker.buy_quote(quote['token'])
         row = self.store.history('DOT90000001')[0]

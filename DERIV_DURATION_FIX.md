@@ -7,7 +7,7 @@
 - The app requests `contracts_for` for your chosen asset using the official authenticated Deriv WebSocket.
 - It reads the CALL/PUT offers and `min_contract_duration` / `max_contract_duration` bounds and lists available 1–15-minute expiries for each direction separately.
 - It rejects unsupported durations BEFORE requesting a price proposal; there is **no automatic adjustment of duration, symbol, or direction**.
-- The legacy demo bot validates both UP and DOWN 1-minute availability before starting. Naked Forex demo automation validates UP and DOWN at the configured expiry before starting, and still validates availability at each subsequent quote.
+- The demo indicator bot validates both UP and DOWN 1-minute availability before starting. Strategy automation validates UP and DOWN at the configured expiry before starting, and still validates availability at each subsequent quote.
 - It translates a duration-specific broker proposal rejection into a clear no-order message. Contract metadata does not guarantee a live quotation.
 - All live automated trades remain prohibited; manual live orders remain locked by default.
 

@@ -76,7 +76,7 @@ class RestrictionTests(unittest.TestCase):
         self.t.contracts_for=lambda sym: normalize_contract_durations(book(offer('CALL','1m','15m')))
         supervisor=StrategySupervisor(self.b,Path(self.folder.name)/'signals.db')
         with self.assertRaisesRegex(BridgeError,'both Rise and Fall'):
-            supervisor.configure({'strategy':'kangaroo','profile':'scalping','timeframe':'5m',
+            supervisor.configure({'strategy':'RSI','profile':'scalping','timeframe':'5m',
                                   'symbol':'R_100','action':'demo_trade','stake':1,'expiry_minutes':3})
         self.assertFalse(supervisor.active)
 

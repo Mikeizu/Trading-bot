@@ -6,7 +6,8 @@ from datetime import datetime, timezone, timedelta
 from unittest.mock import patch
 
 from engine import backtest as indicator_backtest, rsi
-from naked_strategies import backtest, sample_candles, detect, StrategyError, resample, candles_valid
+from strategy_research import backtest
+from market_data import sample_candles,StrategyError,resample,candles_valid
 from research_analytics import performance_metrics, dataset_provenance
 from strategy_selector import compare_all
 
@@ -20,18 +21,17 @@ def directional_rows(count=2000):
     return rows
 
 
-def setup_signal(rows,index,strategy,parameters=None):
-    return {'side':'UP','trigger':.9,'stop':.99,'signal_time':rows[index]['time'],
-            'explanation':'Deterministic test fixture','strategy':strategy}
+def setup_signal(rows,values,index,strategy,parameters=None):
+    return 'UP'
 
 
 class ResearchValidationTests(unittest.TestCase):
     def test_next_bar_entry_and_explicit_costs(self):
         rows=directional_rows(180)
-        with patch('naked_strategies.detect',side_effect=setup_signal):
-            free=backtest(rows,'kangaroo','scalping','5m',expiry_bars=1,stake=1,
+        with patch('strategy_research.signal_at',side_effect=setup_signal):
+            free=backtest(rows,'RSI','scalping','5m',expiry_bars=1,stake=1,
                           commission_per_trade=0,spread_bps=0,slippage_bps=0)
-            cost=backtest(rows,'kangaroo','scalping','5m',expiry_bars=1,stake=1,
+            cost=backtest(rows,'RSI','scalping','5m',expiry_bars=1,stake=1,
                           commission_per_trade=.03,spread_bps=1,slippage_bps=.5)
         first=cost['trades_detail'][0]
         self.assertGreater(first['entered_at'],first['signal_at'])
@@ -42,8 +42,8 @@ class ResearchValidationTests(unittest.TestCase):
         self.assertGreater(cost['break_even_win_rate_pct'],free['break_even_win_rate_pct'])
 
     def test_high_winrate_target_does_not_gate_valid_positive_expectancy(self):
-        with patch('naked_strategies.detect',side_effect=setup_signal):
-            result=backtest(directional_rows(),'kangaroo','scalping','5m',expiry_bars=1,
+        with patch('strategy_research.signal_at',side_effect=setup_signal):
+            result=backtest(directional_rows(),'RSI','scalping','5m',expiry_bars=1,
                             stake=1,target_win_rate=95,spread_bps=0,slippage_bps=0)
         self.assertTrue(result['research_pass'])
         self.assertFalse(result['validation']['benchmark_met'])
@@ -55,8 +55,8 @@ class ResearchValidationTests(unittest.TestCase):
         rows=directional_rows()
         for row in rows:
             row['close']=1.0003 if row['close']>1 else .9997
-        with patch('naked_strategies.detect',side_effect=setup_signal):
-            result=backtest(rows,'kangaroo','scalping','5m',expiry_bars=1,stake=1)
+        with patch('strategy_research.signal_at',side_effect=setup_signal):
+            result=backtest(rows,'RSI','scalping','5m',expiry_bars=1,stake=1)
         self.assertGreater(result['test']['pnl'],0)
         self.assertTrue(result['walk_forward']['passed'])
         self.assertLess(result['robustness']['cost_stress_holdout']['pnl'],0)
@@ -64,8 +64,8 @@ class ResearchValidationTests(unittest.TestCase):
         self.assertFalse(result['research_pass'])
 
     def test_walk_forward_folds_cannot_touch_final_holdout(self):
-        with patch('naked_strategies.detect',side_effect=setup_signal):
-            result=backtest(directional_rows(),'shadow','scalping','5m',expiry_bars=3,stake=1)
+        with patch('strategy_research.signal_at',side_effect=setup_signal):
+            result=backtest(directional_rows(),'MACD','scalping','5m',expiry_bars=3,stake=1)
         boundary=result['validation']['holdout_start_at']
         self.assertEqual(len(result['walk_forward']['folds']),3)
         for fold in result['walk_forward']['folds']:
@@ -81,18 +81,18 @@ class ResearchValidationTests(unittest.TestCase):
         boundary=700
         for row in altered[boundary:]:
             row.update(open=2.0,high=2.01,low=1.99,close=2.005)
-        with patch('naked_strategies.detect',side_effect=setup_signal):
-            a=backtest(rows,'shadow','scalping','5m',expiry_bars=2,stake=1)
-            b=backtest(altered,'shadow','scalping','5m',expiry_bars=2,stake=1)
+        with patch('strategy_research.signal_at',side_effect=setup_signal):
+            a=backtest(rows,'MACD','scalping','5m',expiry_bars=2,stake=1)
+            b=backtest(altered,'MACD','scalping','5m',expiry_bars=2,stake=1)
         self.assertEqual(a['train'],b['train'])
         self.assertEqual(a['walk_forward'],b['walk_forward'])
 
     def test_provenance_changes_with_data_or_settings(self):
         rows=sample_candles(160)
-        a=backtest(rows,'shadow','scalping','5m',source='synthetic')
-        b=backtest(rows,'shadow','scalping','5m',source='synthetic',commission_per_trade=.02)
+        a=backtest(rows,'MACD','scalping','5m',source='synthetic')
+        b=backtest(rows,'MACD','scalping','5m',source='synthetic',commission_per_trade=.02)
         changed=copy.deepcopy(rows);changed[-1]['close']=changed[-1]['open']
-        c=backtest(changed,'shadow','scalping','5m',source='synthetic')
+        c=backtest(changed,'MACD','scalping','5m',source='synthetic')
         self.assertEqual(a['provenance']['dataset_sha256'],b['provenance']['dataset_sha256'])
         self.assertNotEqual(a['provenance']['configuration_sha256'],b['provenance']['configuration_sha256'])
         self.assertNotEqual(a['provenance']['dataset_sha256'],c['provenance']['dataset_sha256'])
@@ -101,8 +101,8 @@ class ResearchValidationTests(unittest.TestCase):
     def test_missing_holding_bars_are_skipped(self):
         rows=directional_rows(170)
         for row in rows[68:]:row['time']+=300
-        with patch('naked_strategies.detect',side_effect=setup_signal):
-            result=backtest(rows,'shadow','scalping','5m',expiry_bars=3)
+        with patch('strategy_research.signal_at',side_effect=setup_signal):
+            result=backtest(rows,'MACD','scalping','5m',expiry_bars=3)
         self.assertGreater(result['skipped']['missing_bars_or_market_closures'],0)
 
     def test_bankrupt_training_does_not_starve_independently_funded_holdout(self):
@@ -111,10 +111,10 @@ class ResearchValidationTests(unittest.TestCase):
         boundary=int(len(losing)*.7)
         for row in losing[:boundary]:row['close']=.997
         for row in winning[:boundary]:row['close']=1.003
-        with patch('naked_strategies.detect',side_effect=setup_signal):
-            a=backtest(losing,'shadow','scalping','5m',expiry_bars=1,stake=100,
+        with patch('strategy_research.signal_at',side_effect=setup_signal):
+            a=backtest(losing,'MACD','scalping','5m',expiry_bars=1,stake=100,
                        initial_balance=100,spread_bps=0,slippage_bps=0)
-            b=backtest(winning,'shadow','scalping','5m',expiry_bars=1,stake=100,
+            b=backtest(winning,'MACD','scalping','5m',expiry_bars=1,stake=100,
                        initial_balance=100,spread_bps=0,slippage_bps=0)
         self.assertEqual(a['train']['ending_balance'],0)
         self.assertGreater(a['skipped']['insufficient_bankroll'],0)
@@ -130,10 +130,10 @@ class ResearchValidationTests(unittest.TestCase):
         # Confirmation index81 would enter82 and expire86, crossing boundary84.
         # The only in-sample outcome is therefore purged. A later holdout trade
         # must still receive its declared fresh capital, rather than its loss.
-        def sparse(rows,index,strategy,parameters=None):
-            return setup_signal(rows,index,strategy) if index in (80,86) else None
-        with patch('naked_strategies.detect',side_effect=sparse):
-            report=backtest(rows,'shadow','scalping','5m',expiry_bars=5,stake=100,
+        def sparse(rows,values,index,strategy,parameters=None):
+            return setup_signal(rows,values,index,strategy) if index in (81,87) else None
+        with patch('strategy_research.signal_at',side_effect=sparse):
+            report=backtest(rows,'MACD','scalping','5m',expiry_bars=5,stake=100,
                             initial_balance=100,spread_bps=0,slippage_bps=0)
         self.assertEqual(report['train']['trades'],0)
         self.assertEqual(report['train']['ending_balance'],100)
@@ -148,11 +148,11 @@ class ResearchValidationTests(unittest.TestCase):
                 stamp=datetime.fromtimestamp(row['time'],timezone.utc)
                 self.assertEqual((stamp.hour,stamp.minute,stamp.second),(0,0,0))
                 self.assertTrue(stamp.day==1 if frame=='1mo' else stamp.weekday()==0)
-            report=backtest(rows,'shadow','position',frame)
+            report=backtest(rows,'MACD','position',frame)
             self.assertTrue(report['data_integrity']['calendar_alignment_required'])
             misaligned=copy.deepcopy(rows)
             for row in misaligned:row['time']+=86400
-            with self.assertRaises(StrategyError):backtest(misaligned,'shadow','position',frame)
+            with self.assertRaises(StrategyError):backtest(misaligned,'MACD','position',frame)
 
     def test_resampling_drops_partial_edges_and_uses_calendar_open(self):
         start=datetime(2024,1,15,tzinfo=timezone.utc)
@@ -168,7 +168,7 @@ class ResearchValidationTests(unittest.TestCase):
         rows=directional_rows(120)
         for settings in ({'payout':True},{'expiry_bars':True},{'profile':[]},{'strategy':{}},
                          {'instrument':{}},{'spread_bps':False}):
-            arguments={'strategy':'shadow','profile':'scalping','frame':'5m',**settings}
+            arguments={'strategy':'MACD','profile':'scalping','frame':'5m',**settings}
             with self.subTest(settings=settings),self.assertRaises(StrategyError):backtest(rows,**arguments)
         for field,value in (('time',True),('time',1.5),('time',float('inf')),('time',10**30),('close',True)):
             bad=copy.deepcopy(rows);bad[0][field]=value
@@ -177,10 +177,10 @@ class ResearchValidationTests(unittest.TestCase):
     def test_parameter_bounds_and_nan_fail_closed(self):
         rows=sample_candles(160)
         for settings in ({'commission_per_trade':float('nan')},{'expiry_bars':2.2},
-                         {'parameters':{'wick_fraction':.01}},{'parameters':{'unknown':1}},
+                         {'parameters':{'rsi_period':0}},{'parameters':{'unknown':1}},
                          {'regime_filter':'false'}):
             with self.subTest(settings=settings),self.assertRaises(StrategyError):
-                backtest(rows,'shadow','scalping','5m',**settings)
+                backtest(rows,'MACD','scalping','5m',**settings)
 
     def test_selector_weights_validated(self):
         with self.assertRaises(ValueError):
@@ -212,8 +212,8 @@ class ResearchValidationTests(unittest.TestCase):
         with patch('engine.signal_at',return_value='UP'):
             report=indicator_backtest(rows,'RSI',duration=3,spread_bps=0,slippage_bps=0)
         self.assertEqual(report['trades'][0]['entry_index'],report['trades'][0]['index']+1)
-        self.assertEqual(report['trades'][0]['entry'],rows[36]['open'])
-        self.assertEqual(report['trades'][0]['exit'],rows[38]['close'])
+        self.assertEqual(report['trades'][0]['entry'],rows[report['trades'][0]['entry_index']]['open'])
+        self.assertEqual(report['trades'][0]['exit'],rows[report['trades'][0]['exit_index']]['close'])
 
     def test_flat_rsi_is_neutral(self):
         self.assertEqual(rsi([1.0]*30)[-1],50)

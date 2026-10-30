@@ -32,7 +32,7 @@ manifest detects accidental corruption; it is not an independent signature.
 The installation verifier creates a fresh extraction and virtual environment,
 installs the supplied wheel with `--no-index --require-hashes`, then invokes the
 current OS launcher in a folder whose name contains spaces. It checks frontend
-assets, seven strategy definitions, synthetic bar persistence, a synthetic
+assets, the complete technical strategy catalog, synthetic bar persistence, a synthetic
 research report, and emergency-stop/block/resume behavior. No broker connection
 or purchase is attempted. Temporary state and processes are cleaned up.
 This check runs on the current OS.

@@ -19,7 +19,7 @@ from deriv_bridge import (BridgeError, BrokerController, BrokerRejection,
 from deriv_server import Journal
 from engine import backtest as indicator_backtest, ema, indicators, rsi, signal_at, sma
 from market_regime import classify_regime
-from naked_strategies import StrategyError, candles_valid, sample_candles
+from market_data import StrategyError, candles_valid, sample_candles
 from research_analytics import performance_metrics, wilson_interval
 from test_deriv import FakeTransport
 

@@ -1,16 +1,14 @@
-# MIKEIZU TradeLab PRO — Deriv research edition
+# MIKEIZU TradeLab PRO — multi-strategy research terminal
 
-A private, local Python trading research application with seven measurable price-action strategies, historical comparisons, virtual paper positions, and an opt-in Deriv **demo** connector. Imported from the supplied v4.3 source package and improved around persistent risk controls, execution recovery, honest research, and clear account modes.
+A private, local trading research and demo application with a configurable technical-indicator library, chronological strategy comparisons, virtual paper positions, and an optional Deriv Options connector. The earlier book-pattern workspace and its seven detectors have been removed from this application; their previous source remains available in Git history.
 
-**Real-money order execution is disabled in this version.** A real account, if connected, is read-only. Historical results, synthetic prices, and virtual paper profits are separate from broker demo records. No performance target guarantees profit.
+**Real-money purchases remain disabled.** Real accounts are read-only. Synthetic prices, historical simulations, virtual paper results and broker demo records stay separate. More strategies do not establish higher forecast accuracy or future profit.
 
-## Start locally
+## Start
 
-Requires Python 3.10 or newer. On Windows, install Python from [python.org](https://www.python.org/downloads/) and run `START_WINDOWS.bat`.
+Requires **Python 3.10+**. Extract the complete application ZIP, then run `START_WINDOWS.bat` on Windows or `bash START_MAC_LINUX.sh` on macOS/Linux. The downloadable package includes a hash-verified dependency wheel for offline installation. This is a Python application package, not a signed standalone executable.
 
-The downloadable ZIP includes the verified dependency wheel for offline installation. Extract the entire ZIP before starting it. See [download instructions](DOWNLOAD_README.txt); this is a Python application package, not a standalone Windows executable.
-
-On macOS/Linux:
+From a source checkout:
 
 ```bash
 python3 -m venv .venv
@@ -18,55 +16,42 @@ python3 -m venv .venv
 .venv/bin/python deriv_server.py --no-browser
 ```
 
-Open `http://127.0.0.1:8765` on the same machine. The application listens only on loopback. Stop it with Ctrl+C; closing a browser tab does not stop the server. For a different port, add `--port 8766`.
+Open the loopback address printed by the launcher on the same machine. Stop with Ctrl+C; closing the browser alone does not stop the backend. Do not expose the server publicly. Cloud tasks should use the existing checkout: each task is already isolated, so another Git worktree is unnecessary.
 
-For cloud development, use the existing checkout. Each task already has an isolated environment; another Git worktree is unnecessary. Validate HTTP endpoints internally; this application is not a publicly hosted trading service.
+## Work with evidence
 
-## Begin safely
+1. Explore synthetic research without credentials. Use the strategy library to inspect each rule, family, warm-up requirement and bounded parameters.
+2. Compare strategies under the same dataset, holding period, payout and execution-cost assumptions. Review net expectancy, drawdown, sample size, uncertainty, chronological holdout, walk-forward and cost-stress results. `NO VALIDATED STRATEGY` is a valid outcome.
+3. Import properly licensed, chronological OHLC data to study authentic history. A checksum identifies the input; it does not authenticate its supplier. A win-rate target is an informational benchmark, never a profit guarantee or an order permit.
+4. Connect an authorized Deriv demo account for authentic broker data. Start with monitoring, then separate virtual paper positions. Demo purchases require explicit activation, supported contracts, fresh data, calendar clearance and persistent risk approval.
+5. Use **Risk & Health** to inspect account identity, limits, unresolved orders and audit status. The emergency stop halts new entries and persists across restarts; it does not close broker contracts.
 
-1. Explore the **synthetic simulator** and **Naked Strategy PRO** research tools without credentials. Synthetic data is labelled and cannot authorize broker deployment.
-2. Compare all seven rules under the same costs and chronological validation assumptions. `NO VALIDATED STRATEGY` is a legitimate result. The 65% win-rate benchmark is informational.
-3. To inspect authentic data, connect an authorized Deriv demo account in **Deriv Broker**, using a matching PAT-type App ID and personal access token. Tokens are entered locally, kept in process memory, and never committed.
-4. Review **Risk & Health** before enabling demo automation. Inspect account identity, persisted limits, news/calendar policy, and outstanding orders. Unknown or stale essential information blocks orders.
-5. Start with **monitor only**, then virtual paper positions. Demo purchases require explicit action, supported short-expiry contracts, fresh broker state, and approval by the independent risk engine.
-6. Use the always-accessible emergency stop to halt new entries. It does not claim to close existing broker contracts; those must settle or be managed through the authorized broker interface.
+The library contains **24 strategies** across trend, momentum, mean-reversion, breakout, volatility and composite rules. Rules use available OHLC evidence; missing volume is not replaced with invented data. See [strategy rules and parameters](docs/STRATEGIES.md) and the runtime `/api/strategy/catalog` for the authoritative catalog.
 
-## What is included
+## Retained safeguards
 
-- Seven quantified Naked Forex interpretations: Last Kiss, Big Shadow, Wammies, Moolahs, Kangaroo Tail, Big Belt, and Trendy Kangaroo.
-- Scalping, intraday, swing, weekly, and monthly **research/monitoring** timeframes. Broker demo option purchases remain limited to supported 1–15 minute durations; chart timeframe and contract duration are distinct.
-- Persistent account/mode risk state, emergency halt, auditable decisions, daily/weekly loss and exposure checks, and conservative demo defaults.
-- Causal, cost-aware fixed-expiry research, independently funded training/holdout segments, training-only ranking, uncertainty estimates, walk-forward checks, and dataset/configuration provenance.
-- Virtual paper-position tracking, deterministic market-regime explanations, broker order journaling, and fail-closed handling of ambiguous purchases.
-- A responsive local interface with explicit simulation/demo/read-only mode labels and system health information.
+Persistent account/mode limits, daily/weekly loss budgets, drawdown and exposure checks, cooldowns, calendar freshness, closed-bar signals, next-open paper entries, cost assumptions, one-use quotes, durable order reservations, uncertain-order lockout, audit records and risk controls remain part of the application. Backtests retain independently funded train/holdout experiments, purging, training-only ranking and no holdout runner-up substitution.
 
-## Important limits
+## Scope and verification
 
-This is a development and research application, **not a production-certified autonomous trading system**. Automated tests use deterministic broker doubles. No authenticated Deriv demo purchase, real broker compatibility, or profitability has been verified in this environment. Deriv MT5/CFD position execution, a licensed economic-news feed, jurisdictional approval, production remote authentication, and calibrated predictive AI are not implemented.
+The user-provided comparison app is identified by Google Play package `com.qexpress.tool`. Its public listing was blocked by this cloud network's proxy, so proprietary algorithms, current features and performance could not be verified. The strategy library contains explicit independently implemented technical rules, not a claim to reproduce that app. See [public research and sources](docs/PUBLIC_RESEARCH.md).
 
-The historical model uses assumed costs and fixed-expiry option payouts. It does not recreate broker tick execution, authentic bid/ask history, partial fills, liquidity, swaps, financing, margin, or real future payouts. Heuristic regime classifications are uncertain and are not forecasts. See the [capability audit](docs/APPLICATION_AUDIT.md) before using results.
+This is a local development/research terminal, not a certified worldwide brokerage or autonomous trading service. Authenticated Deriv demo execution, real account entitlements, jurisdictional approval, MT5/CFD execution, remote multi-user authentication, a licensed automatic news feed and calibrated predictive AI remain unverified or unimplemented. Historical option-payout research does not reproduce actual bid/ask, financing, liquidity or every broker fill.
 
-## Test
+## Test and document
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-Use the virtual environment's Python when dependencies are installed there. Expanded local validation passed **282 tests** on Python 3.12.14, plus control-by-control browser checks with offline and simulated-broker sessions. See the [control audit](docs/CONTROL_AUDIT.md) and [validation evidence](docs/VALIDATION.md) for executed checks and their limits. Real broker access and Windows execution remain unverified.
+Current checks passed **313 Python tests and 44 browser scenarios**, with **160 controls audited**. Use the virtual environment's Python when needed. Current-release outcomes and their limits belong in [VALIDATION.md](docs/VALIDATION.md), [CONTROL_AUDIT.md](docs/CONTROL_AUDIT.md) and [FUNCTION_AUDIT.md](docs/FUNCTION_AUDIT.md). Earlier release counts are not evidence for this changed strategy engine.
 
-## Documentation
+- [Strategy rules](docs/STRATEGIES.md)
+- [Application audit](docs/APPLICATION_AUDIT.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [API and data contracts](docs/API_AND_DATA.md)
+- [Operations and recovery](docs/OPERATIONS.md)
+- [Gaps](docs/GAP_ANALYSIS.md) and [roadmap](docs/ROADMAP.md)
+- [Download instructions](DOWNLOAD_README.txt)
 
-- [Application audit and capability status](docs/APPLICATION_AUDIT.md)
-- [Gap analysis and requirement traceability](docs/GAP_ANALYSIS.md)
-- [Architecture and execution boundaries](docs/ARCHITECTURE.md)
-- [Seven-phase roadmap and acceptance criteria](docs/ROADMAP.md)
-- [Operations, risk controls, backups, and demo procedures](docs/OPERATIONS.md)
-- [Database and API contracts](docs/API_AND_DATA.md)
-- [Validation and reproducible trading research](docs/VALIDATION.md)
-- [Control-by-control acceptance audit](docs/CONTROL_AUDIT.md)
-- [Function review and coverage limits](docs/FUNCTION_AUDIT.md)
-- [Original user development brief](docs/MASTER_PROMPT.md)
-
-`STRATEGY_GUIDE.md`, `AUTO_SELECTOR_GUIDE.md`, and `DERIV_*_FIX.md` arrived with the archive. Their strategy background and historical diagnostics remain useful, but old live opt-in, cost assumptions, paper-risk, and promotion descriptions are superseded by the current documentation. [Archived release notes](docs/ARCHIVE_RELEASE_NOTES.md) preserve that source history.
-
-MIT licensed; see [LICENSE](LICENSE).
+MIT licensed; see [LICENSE](LICENSE). Third-party dependency licenses remain with their packages.

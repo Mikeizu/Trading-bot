@@ -8,7 +8,7 @@ class PaperSafetyTests(unittest.TestCase):
         self.tmp=tempfile.TemporaryDirectory();self.path=Path(self.tmp.name)/'paper.db';self.p=PaperBook(self.path)
     def tearDown(self):self.tmp.cleanup()
     def queue(self,*,stamp=1000,symbol='EURUSD',side='UP'):
-        return self.p.open('account',symbol,'5m','kangaroo',{'side':side,'stop':99 if side=='UP' else 101,'confirmed_at':stamp},100)
+        return self.p.open('account',symbol,'5m','RSI',{'side':side,'stop':99 if side=='UP' else 101,'confirmed_at':stamp},100)
     def bars(self,stamp=1300,**kwargs):
         return [{'time':stamp,'open':100,'high':100.5,'low':99.5,'close':100,**kwargs}]
     def test_no_fill_on_confirmation_close(self):
@@ -46,7 +46,7 @@ class PaperSafetyTests(unittest.TestCase):
     def test_position_count_and_account_isolation(self):
         for symbol in ('EURUSD','GBPUSD','AUDUSD'):self.queue(symbol=symbol)
         with self.assertRaises(PaperError):self.queue(symbol='NZDUSD')
-        idx=self.p.open('other','EURUSD','5m','kangaroo',{'side':'UP','stop':99,'confirmed_at':1000},100)
+        idx=self.p.open('other','EURUSD','5m','RSI',{'side':'UP','stop':99,'confirmed_at':1000},100)
         self.assertIsInstance(idx,int)
     def test_daily_loss_budget_includes_reserved_risk(self):
         for i in range(4):
@@ -56,7 +56,7 @@ class PaperSafetyTests(unittest.TestCase):
     def test_invalid_inputs_fail_closed(self):
         for entry in (float('nan'),float('inf'),-1,True):
             with self.subTest(entry=entry),self.assertRaises(PaperError):
-                self.p.open('account','EURUSD','5m','kangaroo',{'side':'UP','stop':99,'confirmed_at':1000},entry)
+                self.p.open('account','EURUSD','5m','RSI',{'side':'UP','stop':99,'confirmed_at':1000},entry)
         self.queue()
         with self.assertRaises(PaperError):self.p.reconcile('account','EURUSD','5m',[{'time':1300,'high':101,'low':99}])
         with self.assertRaises(PaperError):self.p.reconcile('account','EURUSD','5m',self.bars(close=float('nan')))

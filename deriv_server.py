@@ -10,6 +10,7 @@ import re
 import json
 import os
 import sqlite3
+import tempfile
 import threading
 import time
 import traceback
@@ -21,7 +22,9 @@ from urllib.parse import urlparse
 import server as simulator
 from deriv_bridge import BrokerController, BridgeError, UnknownExecution
 from engine import indicators,signal_at
-from naked_strategies import StrategyError, STRATEGIES,PROFILES,candles_valid as simulator_candles_valid
+from indicator_strategies import STRATEGIES,STRATEGY_VERSION
+from market_data import StrategyError,PROFILES,candles_valid as simulator_candles_valid
+from market_regime import classify_regime
 from strategy_extension import StrategySupervisor
 from risk_engine import RiskError
 
@@ -29,6 +32,35 @@ ROOT=Path(__file__).resolve().parent
 DATA_DIR=Path(os.environ.get('MIKEIZU_DATA_DIR',str(ROOT))).expanduser().resolve()
 DATA_DIR.mkdir(parents=True,exist_ok=True)
 BROKER_DB=DATA_DIR/'deriv_order_journal.db'
+
+
+def migrate_strategy_state(directory):
+    """Copy legacy ledgers consistently, retaining originals and existing targets.
+
+    A SQLite backup includes committed WAL data. Publishing the completed copy
+    uses an atomic non-overwriting link so concurrent startup cannot replace a
+    ledger another process has already created.
+    """
+    directory=Path(directory)
+    outcomes=[]
+    for old,new in (('naked_signals.db','strategy_signals.db'),('naked_paper.db','paper_positions.db')):
+        source=directory/old;target=directory/new
+        if target.exists() or not source.exists():continue
+        handle=tempfile.NamedTemporaryFile(prefix='.strategy-migrate-',suffix='.db',dir=directory,delete=False)
+        staging=Path(handle.name);handle.close()
+        try:
+            original=sqlite3.connect(source.resolve().as_uri()+'?mode=ro',uri=True,timeout=10)
+            copy=sqlite3.connect(staging)
+            try:
+                original.backup(copy)
+                if copy.execute('PRAGMA quick_check').fetchone()[0]!='ok':
+                    raise ValueError('Legacy strategy ledger failed integrity check; originals retained')
+            finally:copy.close();original.close()
+            try:os.link(staging,target)
+            except FileExistsError:continue
+            outcomes.append({'from':old,'to':new,'original_retained':True})
+        finally:staging.unlink(missing_ok=True)
+    return outcomes
 
 
 class Journal:
@@ -210,7 +242,8 @@ class Journal:
 
 journal=Journal()
 broker=BrokerController(journal)
-strategy_supervisor=StrategySupervisor(broker,DATA_DIR/'naked_signals.db')
+STATE_MIGRATIONS=migrate_strategy_state(DATA_DIR)
+strategy_supervisor=StrategySupervisor(broker,DATA_DIR/'strategy_signals.db')
 STARTED_AT=time.time()
 WORKERS={}
 
@@ -253,14 +286,15 @@ def emergency_stop(reason='Emergency stop requested by user'):
 
 
 def capabilities():
-    return {'version':'5.0','deployment':'private localhost; no remote multi-user authentication',
+    return {'version':'6.0','deployment':'private localhost; no remote multi-user authentication',
         'modes':{'research':'available; simulation with disclosed assumptions',
                  'monitor':'available with authentic broker candles; requires connection',
                  'paper':'virtual ledger, separate from broker balances',
                  'broker_demo':'implemented; explicit authorization and risk approval required; not verified against a real account here',
                  'live':'disabled in code; no activation mechanism',
                  'mt5':'not implemented'},
-        'strategies':list(STRATEGIES),'broker_products':['Deriv barrier-free Rise/Fall, broker-advertised 1–15 minute durations'],
+        'strategies':list(STRATEGIES),'strategy_count':len(STRATEGIES),'strategy_version':STRATEGY_VERSION,
+        'broker_products':['Deriv barrier-free Rise/Fall, broker-advertised 1–15 minute durations'],
         'news':'user-supplied licensed calendar coverage; automatic entries fail closed when required coverage is missing or stale',
         'limitations':['No guaranteed returns or calibrated AI prediction model',
             'No MT5 forex/CFD execution, margin model, broker emergency close, or automated news provider',
@@ -270,7 +304,7 @@ def capabilities():
 
 
 class API(simulator.API):
-    server_version='MIKEIZUTradeLab/5.0'
+    server_version='MIKEIZUTradeLab/6.0'
     def check_host(self):
         # DNS rebinding protection. Only loopback host names and the exact server port.
         host=self.headers.get('Host','')
@@ -323,13 +357,14 @@ class API(simulator.API):
                     'scope':'local order and risk records; credentials are never included'})
             if route=='/api/system/health':
                 state=broker.status()
-                return self.send_json({'ok':True,'version':'5.0','uptime_seconds':round(time.time()-STARTED_AT),
+                return self.send_json({'ok':True,'version':'6.0','uptime_seconds':round(time.time()-STARTED_AT),
                     'broker':{'connected':state['connected'],'mode':state['mode'],
                         'message':state['message'],'error':state['error']},
                     'workers':{name:worker.is_alive() for name,worker in WORKERS.items()},
                     'risk':risk_status(),'live_execution':False,
                     'audit_integrity':journal.audit(limit=1)['integrity'] and broker.risk.verify_audit()['valid']})
-            if route=='/api/strategy/catalog':return self.send_json({'strategies':STRATEGIES,'profiles':PROFILES})
+            if route=='/api/strategy/catalog':return self.send_json({'strategies':STRATEGIES,'profiles':PROFILES,
+                'strategy_version':STRATEGY_VERSION,'count':len(STRATEGIES)})
             if route=='/api/strategy/status':return self.send_json(strategy_supervisor.status())
             if route=='/api/deriv/status':return self.send_json(broker.status())
             if route=='/api/deriv/health':return self.send_json({'ok':True,'mode':broker.mode,'connected':broker.status()['connected'],'live_enabled':False})
@@ -378,7 +413,7 @@ class API(simulator.API):
                     if enabled:
                         entry_guard()
                         if strategy_supervisor.active and strategy_supervisor.action=='demo_trade':
-                            raise BridgeError('Stop the Naked Forex demo robot before starting the indicator robot')
+                            raise BridgeError('Stop strategy demo automation before starting the indicator robot')
                         if broker.mode!='demo':raise BridgeError('Robot can only trade a Deriv DEMO account')
                         symbol=obj.get('symbol')
                         if symbol not in {s['symbol'] for s in broker.allowed_symbols}:
@@ -451,11 +486,14 @@ def auto_loop(stop):
             try:
                 entry_guard()
                 broker.reconcile()
-                candles=simulator_candles_valid(broker.get_candles(broker.auto_symbol))
+                warmup=STRATEGIES[broker.auto_strategy]['warmup_bars']
+                candles=simulator_candles_valid(broker.get_candles(broker.auto_symbol,count=min(2500,max(200,warmup+50))))
                 # Only fully completed minute bars; the latest one may be incomplete.
                 cutoff=(int(time.time())//60)*60
                 done=[c for c in candles if c['time'] < cutoff]
-                if len(done)<55:continue
+                if len(done)<warmup:
+                    broker.last_message=f'Waiting for {warmup} completed bars for {broker.auto_strategy}; no order.'
+                    continue
                 epoch=done[-1]['time']
                 if not 0<=int(time.time())-epoch<=180:
                     broker.last_message='Waiting for fresh completed one-minute candles; no new order.'
@@ -464,6 +502,10 @@ def auto_loop(stop):
                     broker.auto_symbol,broker._market_kind(broker.auto_symbol))
                 if not calendar['allowed']:
                     broker.last_message='Automatic entries paused by calendar controls: '+'; '.join(calendar['reasons'])
+                    continue
+                regime=classify_regime(done,news_state='fresh' if calendar.get('fresh') else 'unavailable')
+                if not regime['trading_allowed'] or broker.auto_strategy not in regime['eligible_strategies']:
+                    broker.last_message='Automatic entries paused by regime rules: '+'; '.join(regime['reasons'])
                     continue
                 if broker.last_auto_candle==epoch:continue
                 broker.last_auto_candle=epoch
@@ -494,7 +536,7 @@ def main():
         worker=threading.Thread(target=target,args=(stop,),daemon=True,name=name)
         WORKERS[name]=worker;worker.start()
     server=ThreadingHTTPServer(('127.0.0.1',args.port),API)
-    print(f'\nMIKEIZU TradeLab PRO v5.0: http://127.0.0.1:{args.port}')
+    print(f'\nMIKEIZU TradeLab PRO v6.0: http://127.0.0.1:{args.port}')
     print('Deriv PAT/OTP adapter. Live execution disabled. Broker demo integration requires account verification.')
     print('Do not expose this port to the internet.\n')
     if not args.no_browser:

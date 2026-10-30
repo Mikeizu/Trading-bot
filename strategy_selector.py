@@ -6,7 +6,9 @@ of the same holdout are not new evidence.
 """
 from __future__ import annotations
 import math
-from naked_strategies import STRATEGIES, backtest, candles_valid
+from market_data import candles_valid,StrategyError
+from indicator_strategies import STRATEGIES,validate_parameters
+from strategy_research import backtest
 from market_regime import classify_regime
 from research_analytics import dataset_provenance
 
@@ -17,7 +19,7 @@ DEFAULT_WEIGHTS = {'confidence_edge':.35,'expectancy':.25,'profit_factor':.10,
 def compare_all(rows, *, profile, timeframe, payout=.8, stake=1,
                 expiry_bars=3, target_win_rate=65, commission_per_trade=0.0,
                 spread_bps=1.0,slippage_bps=.5,initial_balance=1000.0,parameters=None,
-                regime_filter=False,source='unspecified',instrument=None,ranking_weights=None):
+                regime_filter=False,regime_thresholds=None,source='unspecified',instrument=None,ranking_weights=None,parameters_by_strategy=None):
     if ranking_weights is not None and not isinstance(ranking_weights,dict):
         raise ValueError('Ranking weights must be an object')
     weights={**DEFAULT_WEIGHTS,**(ranking_weights or {})}
@@ -25,24 +27,36 @@ def compare_all(rows, *, profile, timeframe, payout=.8, stake=1,
         raise ValueError('Unknown ranking weight')
     if any(isinstance(v,bool) or not isinstance(v,(int,float)) or not math.isfinite(v) or not 0<=v<=1 for v in weights.values()) or abs(sum(weights.values())-1)>1e-6:
         raise ValueError('Ranking weights must be finite, nonnegative and sum to one')
+    if parameters not in (None,{}):
+        raise StrategyError('Compare All uses each strategy defaults; use parameters_by_strategy for explicit overrides')
+    if parameters_by_strategy is None:parameters_by_strategy={}
+    if not isinstance(parameters_by_strategy,dict) or set(parameters_by_strategy)-set(STRATEGIES):
+        raise StrategyError('Parameters by strategy must map known strategy IDs to parameter objects')
+    try:configured={strategy:validate_parameters(strategy,parameters_by_strategy.get(strategy)) for strategy in STRATEGIES}
+    except ValueError as exc:raise StrategyError(str(exc)) from None
     rows=candles_valid(rows)
-    regime=classify_regime(rows)
+    regime=classify_regime(rows,thresholds=regime_thresholds)
     reports=[]
     for strategy in STRATEGIES:
         report=backtest(rows,strategy,profile,timeframe,payout=payout,
                         stake=stake,expiry_bars=expiry_bars,target_win_rate=target_win_rate,
                         commission_per_trade=commission_per_trade,spread_bps=spread_bps,
                         slippage_bps=slippage_bps,initial_balance=initial_balance,
-                        parameters=parameters,regime_filter=regime_filter,source=source,instrument=instrument)
+                        parameters=configured[strategy],regime_filter=regime_filter,regime_thresholds=regime_thresholds,source=source,instrument=instrument)
         train=report['train'];hold=report['test'];count=train['trades']
         lower=train['wilson_lower_95_pct'];breakeven=report['break_even_win_rate_pct']
         expectancy=round(train['pnl']/(float(stake)*count)*100,6) if count else None
         compatible=strategy in regime['eligible_strategies']
         walk=report.get('walk_forward')
+        folds=walk.get('folds') if isinstance(walk,dict) else None
+        complete_folds=isinstance(folds,list) and len(folds)==3 and all(isinstance(f,dict) and isinstance(f.get('passed'),bool) for f in folds)
+        fold_passes=sum(f['passed'] for f in folds) if complete_folds else 0
+        walk_evidence=bool(complete_folds and isinstance(walk.get('passes'),int)
+                           and not isinstance(walk.get('passes'),bool) and walk['passes']==fold_passes)
+        walk_passed=bool(walk_evidence and walk.get('passed') is True and fold_passes>=2)
         # No holdout metric participates in training eligibility or score.
         eligible=bool(count>=30 and train['pnl']>0 and lower is not None and lower>breakeven
-                      and train['max_drawdown_pct']<=10 and
-                      (walk is None or walk['passed']))
+                      and train['max_drawdown_pct']<=10 and walk_passed)
         factor=train.get('profit_factor');risk_adjusted=train.get('risk_adjusted_return')
         components={
             'confidence_edge':lower-breakeven if lower is not None else 0,
@@ -50,14 +64,16 @@ def compare_all(rows, *, profile, timeframe, payout=.8, stake=1,
             'profit_factor':max(-10,min(10,((factor or 1)-1)*10)),
             'risk_adjusted_return':max(-10,min(10,(risk_adjusted or 0)*2)),
             'drawdown':-train['max_drawdown_pct'],
-            'walk_forward':10*walk['passes']/len(walk['folds']) if walk and walk['folds'] else 0,
+            'walk_forward':10*fold_passes/len(folds) if walk_evidence else 0,
         }
         score=round(sum(weights[k]*v for k,v in components.items()),6) if eligible else None
         reports.append({'strategy':strategy,'name':STRATEGIES[strategy]['name'],
                         'train':train,'holdout':hold,'training_eligible':eligible,
-                        'training_score':score,'score_components':components,
+                        'training_score':score,'score_components':components,'parameters':configured[strategy],
+                        'strategy_version':STRATEGIES[strategy].get('version'),'family':STRATEGIES[strategy]['family'],
                         'training_expectancy_pct_of_stake':expectancy,
                         'regime_compatible':compatible,'walk_forward':walk,
+                        'training_walk_forward_evidence_complete':walk_evidence,
                         'holdout_pass':report['research_pass'],'assessment':report['assessment']})
     reports.sort(key=lambda x:(x['training_score'] is not None,
                   x['training_score'] if x['training_score'] is not None else -math.inf,
@@ -81,9 +97,9 @@ def compare_all(rows, *, profile, timeframe, payout=.8, stake=1,
     configuration={'profile':profile,'timeframe':timeframe,'payout':payout,'stake':stake,
                    'expiry_bars':expiry_bars,'target_win_rate':target_win_rate,'ranking_weights':weights,
                    'commission_per_trade':commission_per_trade,'spread_bps':spread_bps,
-                   'slippage_bps':slippage_bps,'parameters':parameters,'regime_filter':regime_filter}
+                   'slippage_bps':slippage_bps,'parameters_by_strategy':configured,'regime_filter':regime_filter,'regime_thresholds':regime_thresholds}
     return {'strategies_tested':len(reports),'ranked':reports,'training_candidate':candidate['strategy'] if candidate else None,
-            'winner':winner,'qualified':qualified,'verdict':verdict,
+            'winner':winner,'winner_parameters':configured[winner] if winner else None,'qualified':qualified,'verdict':verdict,
             'selection_method':'Train-only weighted confidence edge, net expectancy, profit factor, unannualized risk-adjusted return, drawdown and purged walk-forward score; one final 30% holdout check.',
             'ranking_weights':weights,'market_regime':regime,
             'provenance':dataset_provenance(rows,source=source,instrument=instrument,timeframe=timeframe,configuration=configuration),

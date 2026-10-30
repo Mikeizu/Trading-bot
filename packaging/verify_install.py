@@ -99,14 +99,14 @@ def check_install(bundle: Path, *, timeout=40.0) -> dict:
                     raise AssertionError('Package smoke test requires a disconnected, live-disabled app')
                 checks.append('actual extracted launcher starts local API with all workers and valid audit')
                 catalog = request('/api/strategy/catalog')
-                if len(catalog['strategies']) != 7:
+                if len(catalog['strategies']) < 18 or not {'RSI','MACD','CCI','SMA','BOLLINGER','STOCHASTIC'}.issubset(catalog['strategies']):
                     raise AssertionError('Strategy catalog incomplete')
                 for asset in ('/', '/styles.css', '/app.js', '/deriv_ui.js',
-                              '/strategy_ui.js', '/terminal_controls.js', '/sw.js'):
+                              '/strategies_ui.js', '/terminal_controls.js', '/sw.js'):
                     with opener.open(base+asset, timeout=5) as response:
                         if response.status != 200 or not response.read():
                             raise AssertionError('Missing frontend asset: '+asset)
-                checks.append('frontend shell/assets and all seven strategy definitions served')
+                checks.append('frontend shell/assets and complete technical strategy catalog served')
                 before = request('/api/bootstrap')
                 if before['robot']['active']:
                     raise AssertionError('Synthetic automation started without explicit activation')
@@ -116,7 +116,7 @@ def check_install(bundle: Path, *, timeout=40.0) -> dict:
                     raise AssertionError('Synthetic bar advancement failed')
                 checks.append('synthetic data request changes the expected stored candle')
                 report = request('/api/strategy/backtest', {
-                    'source': 'synthetic', 'strategy': 'kangaroo', 'profile': 'scalping',
+                    'source': 'synthetic', 'strategy': 'RSI', 'profile': 'scalping',
                     'timeframe': '5m', 'payout': .8, 'stake': 1, 'expiry_bars': 3,
                     'target_win_rate': 65})
                 if ('Synthetic' not in report['source'] or

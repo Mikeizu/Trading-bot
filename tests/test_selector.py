@@ -4,7 +4,8 @@ import sys,tempfile,time,unittest
 from pathlib import Path
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from naked_strategies import STRATEGIES, sample_candles
+from indicator_strategies import STRATEGIES
+from market_data import sample_candles
 from strategy_selector import compare_all
 from strategy_extension import StrategySupervisor
 from deriv_bridge import BrokerController,BridgeError
@@ -21,7 +22,8 @@ def fake_report(strategy, training_win=75, test_success=False):
           'pnl':80 if test_success else -100,'roi_pct':8 if test_success else -10,
           'max_drawdown_pct':5,'equity_curve':[]}
     return {'strategy':strategy,'train':tr,'test':hold,'break_even_win_rate_pct':55.56,
-            'research_pass':test_success,'assessment':'fake diagnostic test'}
+            'research_pass':test_success,'assessment':'fake diagnostic test',
+            'walk_forward':{'passed':True,'passes':3,'folds':[{'passed':True} for _ in range(3)]}}
 
 class ComparisonTests(unittest.TestCase):
     def setUp(self):self.rows=sample_candles(250,300)
@@ -32,28 +34,28 @@ class ComparisonTests(unittest.TestCase):
         self.assertEqual({x['strategy'] for x in r['ranked']},set(STRATEGIES))
         self.assertFalse(r['qualified'])
     def test_never_promotes_runner_up_on_holdout_success(self):
-        # First (kangaroo) has best TRAIN metrics but fails holdout.
-        # Second (shadow) has lower TRAIN score but passes holdout.
+        # First (RSI) has best TRAIN metrics but fails holdout.
+        # Second (MACD) has lower TRAIN score but passes holdout.
         def simulate(rows,strategy,*a,**kw):
-            if strategy=='kangaroo':return fake_report(strategy,85,False)
-            if strategy=='shadow':return fake_report(strategy,75,True)
+            if strategy=='RSI':return fake_report(strategy,85,False)
+            if strategy=='MACD':return fake_report(strategy,75,True)
             return fake_report(strategy,50,False)
         with patch('strategy_selector.backtest',side_effect=simulate):
             r=compare_all(self.rows,profile='scalping',timeframe='5m')
-        self.assertEqual(r['training_candidate'],'kangaroo')
+        self.assertEqual(r['training_candidate'],'RSI')
         self.assertIsNone(r['winner'])
         self.assertFalse(r['qualified'])
     def test_training_winner_passed_holdout_can_be_named(self):
         def simulate(rows,strategy,*a,**kw):
-            return fake_report(strategy,85 if strategy=='kangaroo' else 50,
-                               strategy=='kangaroo')
+            return fake_report(strategy,85 if strategy=='RSI' else 50,
+                               strategy=='RSI')
         with patch('strategy_selector.backtest',side_effect=simulate):
             r=compare_all(self.rows,profile='scalping',timeframe='5m')
-        self.assertEqual(r['winner'],'kangaroo')
+        self.assertEqual(r['winner'],'RSI')
         self.assertTrue(r['qualified'])
     def test_real_scan_never_validates_synthetic(self):
         result=compare_all(self.rows,profile='scalping',timeframe='5m')
-        self.assertEqual(result['strategies_tested'],7)
+        self.assertEqual(result['strategies_tested'],len(STRATEGIES))
         self.assertIsNone(result['winner'])
 
 class RecentTransport(FakeTransport):
@@ -73,15 +75,15 @@ class BestActivationTests(unittest.TestCase):
                     'payout':.8,'stake':1,'expiry_bars':3,'target_win_rate':65}
     def tearDown(self):self.broker.disconnect();self.tmp.cleanup()
     def _fake_comparison(self,**kwargs):
-        return {'qualified':True,'winner':'kangaroo','training_candidate':'kangaroo',
-                'strategies_tested':7,'ranked':[{'strategy':'kangaroo','name':'Kangaroo Tail'}],
+        return {'qualified':True,'winner':'RSI','training_candidate':'RSI',
+                'strategies_tested':len(STRATEGIES),'ranked':[{'strategy':'RSI','name':'RSI re-entry'}],
                 'selection_method':'training only','verdict':'research pass'}
     def test_selects_server_side_only_and_starts_monitor(self):
         with patch('strategy_extension.compare_all',side_effect=lambda *a,**kw:self._fake_comparison()):
             result=self.supervisor.scan_all(self.input)
         self.assertTrue(result['auto_eligible'])
-        started=self.supervisor.activate_best({'strategy':'moolah','symbol':'EVIL','action':'monitor','stake':1})
-        self.assertEqual(started['strategy'],'kangaroo')
+        started=self.supervisor.activate_best({'strategy':'CCI','symbol':'EVIL','action':'monitor','stake':1})
+        self.assertEqual(started['strategy'],'RSI')
         self.assertEqual(started['symbol'],'R_100')
         self.assertTrue(started['auto_selected'])
     def test_synthetic_comparison_never_authorizes_broker_execution(self):
@@ -114,7 +116,7 @@ class BestActivationTests(unittest.TestCase):
         self.assertTrue(result['auto_selected'])
     def test_bogus_browser_approval_flag_has_no_effect(self):
         # Browser POST /start is not allowed to claim it passed scan validation.
-        result=self.supervisor.configure({'strategy':'kangaroo','profile':'scalping',
+        result=self.supervisor.configure({'strategy':'RSI','profile':'scalping',
              'timeframe':'5m','symbol':'R_100','action':'monitor','stake':1,
              '_validated_best':True})
         self.assertFalse(result['auto_selected'])
@@ -128,7 +130,7 @@ class BestActivationTests(unittest.TestCase):
                                       'Deterministic test fixture; not a production calendar')
         sig={'side':'UP','confirmed_at':int(time.time())//300*300-300,
              'explanation':'test signal','stop':1,'trigger':1.2}
-        eligible={'regime':'ranging','trading_allowed':True,'eligible_strategies':['kangaroo'],
+        eligible={'regime':'ranging','trading_allowed':True,'eligible_strategies':['RSI'],
                   'reasons':['Deterministic eligible regime fixture']}
         with patch('strategy_extension.confirmed_signal',return_value=sig), patch('strategy_extension.classify_regime',return_value=eligible):
             self.supervisor.tick()

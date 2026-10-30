@@ -10,7 +10,7 @@ import json
 import math
 import statistics
 
-STRATEGY_VERSION = '2.0.0'
+STRATEGY_VERSION = '3.0.0'
 
 
 def wilson_interval(wins, count, z=1.96):

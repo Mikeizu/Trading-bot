@@ -14,7 +14,7 @@
   <div class="sidebar-label">WORKSPACE</div>
   <nav class="navigation" aria-label="Main navigation">
     <button class="nav-btn active" data-page="overview"><span class="nav-ico">▦</span><span>Overview</span></button>
-    <button class="nav-btn" data-page="naked"><span class="nav-ico">◬</span><span>Naked Strategy PRO</span></button>
+    <button class="nav-btn" data-page="strategies"><span class="nav-ico">◬</span><span>Strategy Research</span></button>
     <button class="nav-btn" data-page="deriv"><span class="nav-ico">◉</span><span>Deriv Broker</span></button>
     <button class="nav-btn" data-page="robot"><span class="nav-ico">◈</span><span>Trading Robot</span></button>
     <button class="nav-btn" data-page="backtest"><span class="nav-ico">⌁</span><span>Strategy Lab</span></button>
@@ -44,77 +44,77 @@
   <div class="bottom-grid"><article class="panel market-panel"><div class="panel-header"><div><span class="small-tag">EXPLORE MARKETS</span><h2>Watchlist <span class="muted-title">/ simulated</span></h2></div><button class="linkish" data-go="settings">Manage →</button></div><div id="watchlist" class="watchlist"></div></article><article class="panel activity-panel"><div class="panel-header"><div><span class="small-tag">LATEST ACTIVITY</span><h2>Recent trades</h2></div><button class="linkish" data-go="history">View all →</button></div><div id="overview-trades" class="overview-trades"></div></article></div>
 </section>
 
-<section class="page" id="page-naked">
- <div class="page-heading"><div><div class="eyebrow">MIKEIZU · NAKED FOREX STRATEGY ENGINE</div><h1>Strategy Automation <span class="heading-shine">✳</span></h1><p>Seven rule-based price-action detectors · scalping, intraday, swing and long-term monitoring · reproducible research reports</p></div><span class="naked-engine-pill" id="naked-engine-pill">STOPPED</span></div>
+<section class="page" id="page-strategies">
+ <div class="page-heading"><div><div class="eyebrow">MIKEIZU · INDICATOR STRATEGY RESEARCH</div><h1>Research &amp; automation <span class="heading-shine">✳</span></h1><p>A transparent strategy library with configurable rules, market-regime checks and reproducible validation.</p></div><span class="lab-engine-pill" id="lab-engine-pill">STOPPED</span></div>
  <div class="demo-banner"><span class="banner-emblem">◆</span><div><strong>Research evidence before execution</strong><span>65% is a configurable WIN-RATE research benchmark, not a guaranteed return. Broker demo trades only; there is no unattended real-money automation.</span></div><span class="banner-tag">SAFETY FIRST</span></div>
- <div class="naked-cards">
-  <article class="panel"><div class="panel-header"><div><span class="small-tag">01 / SELECT RULES</span><h2>Build a strategy</h2></div><span class="naked-icon">◬</span></div>
+ <div class="lab-cards">
+  <article class="panel"><div class="panel-header"><div><span class="small-tag">01 / SELECT RULES</span><h2>Build a strategy</h2></div><span class="lab-icon">◬</span></div>
    <div class="form-stack">
-    <label>Trading style<select id="naked-profile"><option value="scalping">Scalping · 1–5 min</option><option value="intraday">Intraday · 15 min–1 hour</option><option value="swing">Swing · 4 hours–daily</option><option value="position">Long-term · weekly–monthly</option></select></label>
-    <div class="naked-hint" id="naked-profile-note"></div>
-    <label>Strategy from Naked Forex<select id="naked-strategy"><option value="kangaroo">Loading strategy catalog...</option></select></label>
-    <div class="naked-hint" id="naked-strategy-info">Automated versions are defined interpretations of the book, not guaranteed signals.</div>
-    <div class="input-grid"><label>Chart timeframe<select id="naked-timeframe"><option value="5m">5 minutes</option></select></label><label>OHLC candle source<select id="naked-source"><option value="synthetic">Synthetic sample</option><option value="deriv">Actual Deriv history</option><option value="csv">My local CSV</option></select></label></div>
-    <div id="naked-file-panel" hidden><label class="naked-file-label" for="naked-csv-input">↥ Load historical CSV</label><input id="naked-csv-input" type="file" accept=".csv,text/csv"><p class="disclaimer-tiny" id="naked-csv-label">Required: time, open, high, low, close · 100–10,000 candles</p></div>
-    <div class="naked-hint" id="naked-data-warning">Synthetic sample data cannot validate market profitability.</div>
-    <label>Deriv market (for official broker data and monitoring)<select id="naked-symbol"><option value="">Connect on Broker tab</option></select></label>
-    <div class="input-grid"><label>Assumed payout %<input type="number" id="naked-payout" value="80" step="1" min="20" max="150"></label><label>Win-rate research target %<input type="number" id="naked-target" value="65" step="1" min="40" max="95"></label></div>
-    <div class="input-grid"><label>Hypothetical stake ($)<input type="number" id="naked-stake" value="1" step="0.01" min="0.35" max="100"></label><label>Holding period (bars)<select id="naked-expiry-bars"><option value="1">1 bar</option><option value="2">2 bars</option><option value="3" selected>3 bars</option><option value="5">5 bars</option><option value="10">10 bars</option><option value="20">20 bars</option></select></label></div>
-    <details class="research-assumptions advanced-only"><summary>Execution-cost assumptions</summary><div class="input-grid"><label>Commission per trade<input type="number" id="research-commission" value="0" min="0" max="100" step="0.01"></label><label>Spread (basis points)<input type="number" id="research-spread" value="1" min="0" max="100" step="0.1"></label></div><label>Slippage (basis points)<input type="number" id="research-slippage" value="0.5" min="0" max="100" step="0.1"></label><p class="disclaimer-tiny">Zero means omitted from the model, not free execution. Set assumptions supported by your dataset and product. Theoretical fixed-payout research cannot reproduce every broker fill.</p></details>
-    <button id="naked-backtest" type="button" class="button button-primary full">⌁ Backtest selected strategy</button>
+    <label>Trading style<select id="lab-profile"><option value="scalping">Scalping · 1–5 min</option><option value="intraday">Intraday · 15 min–1 hour</option><option value="swing">Swing · 4 hours–daily</option><option value="position">Long-term · weekly–monthly</option></select></label>
+    <div class="lab-hint" id="lab-profile-note"></div>
+    <div class="input-grid"><label>Strategy family<select id="lab-family"><option value="all">All families</option></select></label><label>Search strategies<input id="lab-search" type="search" placeholder="RSI, trend, breakout…" autocomplete="off"></label></div><p id="lab-catalog-summary" class="catalog-summary" role="status">Loading strategy library…</p><label>Indicator strategy<select id="lab-strategy"><option value="RSI">Loading strategy catalog...</option></select></label>
+    <div class="lab-hint" id="lab-strategy-info">Measurable rules use completed candles. Historical win rate is evidence to examine, not a prediction.</div><details class="advanced-only strategy-parameter-details"><summary>Strategy parameters and rule set</summary><p class="disclaimer-tiny" id="lab-rules">Choose a strategy to inspect its rules.</p><div id="lab-parameters" class="input-grid"></div><button type="button" id="lab-reset-parameters" class="button button-outline">Restore strategy defaults</button></details>
+    <div class="input-grid"><label>Chart timeframe<select id="lab-timeframe"><option value="5m">5 minutes</option></select></label><label>OHLC candle source<select id="lab-source"><option value="synthetic">Synthetic sample</option><option value="deriv">Actual Deriv history</option><option value="csv">My local CSV</option></select></label></div>
+    <div id="lab-file-panel" hidden><label class="lab-file-label" for="lab-csv-input">↥ Load historical CSV</label><input id="lab-csv-input" type="file" accept=".csv,text/csv"><p class="disclaimer-tiny" id="lab-csv-label">Required: time, open, high, low, close · 100–10,000 candles</p></div>
+    <div class="lab-hint" id="lab-data-warning">Synthetic sample data cannot validate market profitability.</div>
+    <label>Deriv market (for official broker data and monitoring)<select id="lab-symbol"><option value="">Connect on Broker tab</option></select></label>
+    <div class="input-grid"><label>Assumed payout %<input type="number" id="lab-payout" value="80" step="1" min="20" max="150"></label><label>Win-rate research target %<input type="number" id="lab-target" value="65" step="1" min="40" max="95"></label></div>
+    <div class="input-grid"><label>Hypothetical stake (units)<input type="number" id="lab-stake" value="1" step="0.01" min="0.35" max="100"></label><label>Holding period (bars)<select id="lab-expiry-bars"><option value="1">1 bar</option><option value="2">2 bars</option><option value="3" selected>3 bars</option><option value="5">5 bars</option><option value="10">10 bars</option><option value="20">20 bars</option></select></label></div>
+    <label class="strategy-checkbox"><input id="lab-regime-filter" type="checkbox" checked><span>Filter historical entries by compatible market regime</span></label><p class="disclaimer-tiny">No calibrated prediction probability is available. The app can abstain when signals, data or market conditions are unsuitable.</p><details class="research-assumptions advanced-only"><summary>Execution-cost assumptions</summary><div class="input-grid"><label>Commission per trade<input type="number" id="research-commission" value="0" min="0" max="100" step="0.01"></label><label>Spread (basis points)<input type="number" id="research-spread" value="1" min="0" max="100" step="0.1"></label></div><label>Slippage (basis points)<input type="number" id="research-slippage" value="0.5" min="0" max="100" step="0.1"></label><p class="disclaimer-tiny">Zero means omitted from the model, not free execution. Set assumptions supported by your dataset and product. Theoretical fixed-payout research cannot reproduce every broker fill.</p></details>
+    <button id="lab-backtest" type="button" class="button button-primary full">⌁ Backtest selected strategy</button>
    </div>
   </article>
-  <article class="panel"><div class="panel-header"><div><span class="small-tag">02 / AUTOMATION</span><h2>Strategy robot control</h2></div><span class="naked-icon">◎</span></div>
-   <div class="naked-mode-label">CONNECTED BROKER WORKSPACE</div>
-   <div class="naked-current" id="naked-current-rule">No automated strategy running</div>
-   <div class="naked-robot-line"><span class="status-dot"></span><span id="naked-run-status">Stopped. Connect a Deriv demo account to begin monitoring authentic market candles.</span></div>
-   <p class="disclaimer-tiny" id="naked-last">No completed-bar scan yet</p>
+  <article class="panel"><div class="panel-header"><div><span class="small-tag">02 / AUTOMATION</span><h2>Strategy robot control</h2></div><span class="lab-icon">◎</span></div>
+   <div class="lab-mode-label">CONNECTED BROKER WORKSPACE</div>
+   <div class="lab-current" id="lab-current-rule">No automated strategy running</div>
+   <div class="lab-robot-line"><span class="status-dot"></span><span id="lab-run-status">Stopped. Connect a Deriv demo account to begin monitoring authentic market candles.</span></div>
+   <p class="disclaimer-tiny" id="lab-last">No completed-bar scan yet</p>
    <div class="settings-divider"></div>
    <div class="form-stack">
-     <label>Automatic action<select id="naked-action"><option value="monitor">Monitor and record signals · no orders</option><option value="paper_trade">Automatic virtual positions · 0.5% risk / 2R target</option><option value="demo_trade">Buy DEMO options on confirmed signals</option></select></label>
-     <div id="naked-order-settings"><label>Demo contract expiry in minutes<select id="naked-expiry-minutes"><option value="1">1 minute</option><option value="2">2 minutes</option><option value="3" selected>3 minutes</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option></select></label></div>
-     <div class="naked-hint" id="naked-auto-rule">Only short-duration demo options may execute. Higher timeframes are alert-only.</div>
-     <button type="button" class="button button-primary full" id="naked-start">▶ Start strategy automation</button>
-     <button type="button" class="button button-danger full" id="naked-stop" disabled>■ Emergency stop new signals</button>
-     <p class="disclaimer-tiny">Stopping the robot does not cancel already purchased options. Automatic orders require a confirmed pattern, Deriv demo account, broker risk checks and no outstanding positions. Orders are never blind-retried.</p>
+     <label>Automatic action<select id="lab-action"><option value="monitor">Monitor and record signals · no orders</option><option value="paper_trade">Automatic virtual positions · 0.5% risk / 2R target</option><option value="demo_trade">Buy DEMO options on confirmed signals</option></select></label>
+     <div id="lab-order-settings"><label>Demo contract expiry in minutes<select id="lab-expiry-minutes"><option value="1">1 minute</option><option value="2">2 minutes</option><option value="3" selected>3 minutes</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option></select></label></div>
+     <div class="lab-hint" id="lab-auto-rule">Only short-duration demo options may execute. Higher timeframes are alert-only.</div>
+     <button type="button" class="button button-primary full" id="lab-start">▶ Start strategy automation</button>
+     <button type="button" class="button button-danger full" id="lab-stop" disabled>■ Emergency stop new signals</button>
+     <p class="disclaimer-tiny">Stopping the robot does not cancel already purchased options. Automatic orders require a completed-candle rule signal, Deriv demo account, broker risk checks and no outstanding positions. Orders are never blind-retried.</p>
    </div>
    <div class="settings-divider"></div>
-   <p class="naked-side-heading">Detection rules</p>
-   <div class="naked-mini-grid"><span>Data</span><strong>Closed candles only</strong><span>Order connection</span><strong>Official Deriv PAT/OTP</strong><span>Real-money execution</span><strong class="negative">Unavailable in this release</strong><span>Risk</span><strong>0.5% default / persisted limits</strong><span>Execution failure</span><strong>Stop &amp; investigate</strong></div>
+   <details class="research-details"><summary>Latest signal and decision evidence</summary><pre id="lab-signal-evidence">No current market signal has been evaluated.</pre></details><p class="lab-side-heading">Execution boundary</p>
+   <div class="lab-mini-grid"><span>Data</span><strong>Closed candles only</strong><span>Order connection</span><strong>Official Deriv PAT/OTP</strong><span>Real-money execution</span><strong class="negative">Unavailable in this release</strong><span>Risk</span><strong>0.5% default / persisted limits</strong><span>Execution failure</span><strong>Stop &amp; investigate</strong></div>
   </article>
  </div>
- <section class="panel auto-lab-panel" aria-label="Compare all seven strategies">
-  <div class="panel-header"><div><span class="small-tag">NEW / SEVEN-STRATEGY RESEARCH</span><h2>Auto Strategy Selector</h2></div><span class="naked-engine-pill">TRAIN → HOLDOUT</span></div>
-  <p class="naked-result-copy">Compare all seven rules on the SAME historical candles, timeframe, theoretical payout and stake. A risk-adjusted score ranks training results; only the first-ranked eligible strategy is checked for automatic adoption. No successful validation = no auto start.</p>
-  <div class="auto-toolbar"><button type="button" class="button button-primary" id="naked-scan-all">⌁ Backtest all 7 strategies</button><button type="button" class="button button-outline" id="naked-export-all" disabled>↓ Export full comparison</button></div>
-  <div class="auto-verdict naked-verdict naked-denied" id="naked-auto-verdict" role="status">No comparison has been run.</div>
-  <p class="naked-result-copy" id="naked-auto-source">Use Deriv historical candles to enable a validated automatic selection. Synthetic and CSV scans are research-only.</p>
-  <div class="table-scroll"><table class="auto-leaderboard"><thead><tr><th>RANK</th><th>STRATEGY</th><th>TRAIN TRADES</th><th>TRAIN WIN RATE</th><th>TRAIN P&amp;L</th><th>RISK SCORE</th><th>HOLDOUT TRADES</th><th>HOLDOUT WIN RATE</th><th>HOLDOUT P&amp;L</th><th>RESULT</th></tr></thead><tbody id="naked-leaderboard"><tr><td colspan="10" class="empty-row">Run the comparison to see every strategy side by side.</td></tr></tbody></table></div>
+ <section class="panel auto-lab-panel" aria-label="Compare indicator strategy library">
+  <div class="panel-header"><div><span class="small-tag">TRAINING EVIDENCE / STRATEGY COMPARISON</span><h2>Auto Strategy Selector</h2></div><span class="lab-engine-pill">TRAIN → HOLDOUT</span></div>
+  <p class="lab-result-copy">Compare the full strategy library on the same historical candles, timeframe, theoretical payout and stake, using each strategy’s catalog defaults. A risk-adjusted score ranks training results; only the first-ranked eligible strategy is checked for automatic adoption. No successful validation = no auto start.</p>
+  <div class="auto-toolbar"><button type="button" class="button button-primary" id="lab-scan-all">⌁ Compare strategy library</button><button type="button" class="button button-outline" id="lab-export-all" disabled>↓ Export full comparison</button></div>
+  <div class="auto-verdict lab-verdict lab-denied" id="lab-auto-verdict" role="status">No comparison has been run.</div>
+  <p class="lab-result-copy" id="lab-auto-source">Use Deriv historical candles to enable a validated automatic selection. Synthetic and CSV scans are research-only.</p>
+  <div class="table-scroll"><table class="auto-leaderboard"><thead><tr><th>RANK</th><th>STRATEGY</th><th>TRAIN TRADES</th><th>TRAIN WIN RATE</th><th>TRAIN P&amp;L</th><th>RISK SCORE</th><th>HOLDOUT TRADES</th><th>HOLDOUT WIN RATE</th><th>HOLDOUT P&amp;L</th><th>RESULT</th></tr></thead><tbody id="lab-leaderboard"><tr><td colspan="10" class="empty-row">Run the comparison to see every strategy side by side.</td></tr></tbody></table></div>
   <div class="auto-adopt">
-    <div><strong id="naked-best-rule">No strategy selected</strong><p id="naked-auto-advice">The comparison does not trade or move funds. Only confirmed broker-data research can unlock activation.</p></div>
-    <button type="button" id="naked-start-best" class="button button-primary" disabled>▶ Use best validated strategy</button>
+    <div><strong id="lab-best-rule">No strategy selected</strong><p id="lab-auto-advice">The comparison does not trade or move funds. Only confirmed broker-data research can unlock activation.</p></div>
+    <button type="button" id="lab-start-best" class="button button-primary" disabled>▶ Use best validated strategy</button>
   </div>
-  <p class="disclaimer-tiny">Selection is based only on training data, not on the best holdout outcome. A 65% win-rate benchmark is not 65% ROI. Research uses theoretical fixed-expiry options (not the book's long-held forex stop/target model). Repeated backtests on the same holdout can overfit; live results can lose money. No unattended real-money orders.</p>
+  <p class="disclaimer-tiny">Selection is based only on training data, not on the best holdout outcome. A 65% win-rate benchmark is not 65% ROI. Research uses theoretical fixed-expiry option payouts; it is not a forex/CFD execution backtest. Repeated backtests on the same holdout can overfit; live results can lose money. No unattended real-money orders.</p>
  </section>
- <div class="naked-feedback" id="naked-feedback" aria-live="polite">Choose a strategy and run a research backtest, or connect to Deriv to monitor real-market signals.</div>
- <section class="panel" id="naked-result" hidden><div class="panel-header"><div><span class="small-tag">03 / HISTORICAL RESEARCH</span><h2>Historical performance · 70% calibration / 30% holdout</h2></div><button class="button button-outline" type="button" id="naked-report-export">↓ Export report (JSON)</button></div>
-  <div class="naked-verdict naked-denied" id="naked-verdict">NOT VALIDATED</div><p class="naked-result-copy" id="naked-assessment"></p>
-  <p class="naked-result-copy" id="naked-origin"></p><p class="naked-result-copy" id="naked-breakeven"></p>
-  <div class="naked-results-grid"><div><div class="naked-subtitle">First 70% · in-sample</div><div id="naked-in-sample"></div></div><div><div class="naked-subtitle">Last 30% · held-out sample</div><div id="naked-out-sample"></div></div></div>
-  <div class="naked-subtitle">Theoretical equity path · not a broker statement</div><div id="naked-equity" class="naked-equity"></div>
-  <p class="naked-result-copy" id="naked-report-note"></p>
-  <div class="naked-subtitle">Drawdown from prior equity peak</div><div id="naked-drawdown" class="naked-equity"></div>
+ <div class="lab-feedback" id="lab-feedback" aria-live="polite">Choose a strategy and run a research backtest, or connect to Deriv to monitor real-market signals.</div>
+ <section class="panel" id="lab-result" hidden><div class="panel-header"><div><span class="small-tag">03 / HISTORICAL RESEARCH</span><h2>Historical performance · 70% calibration / 30% holdout</h2></div><button class="button button-outline" type="button" id="lab-report-export">↓ Export report (JSON)</button></div>
+  <div class="lab-verdict lab-denied" id="lab-verdict">NOT VALIDATED</div><p class="lab-result-copy" id="lab-assessment"></p>
+  <p class="lab-result-copy" id="lab-origin"></p><p class="lab-result-copy" id="lab-breakeven"></p>
+  <div class="lab-results-grid"><div><div class="lab-subtitle">First 70% · in-sample</div><div id="lab-in-sample"></div></div><div><div class="lab-subtitle">Last 30% · held-out sample</div><div id="lab-out-sample"></div></div></div>
+  <div class="lab-subtitle">Theoretical equity path · not a broker statement</div><div id="lab-equity" class="lab-equity"></div>
+  <p class="lab-result-copy" id="lab-report-note"></p>
+  <div class="lab-subtitle">Drawdown from prior equity peak</div><div id="lab-drawdown" class="lab-equity"></div>
   <div class="research-evidence-grid"><article><h3>Market regime</h3><div id="research-regime">No classification supplied.</div></article><article><h3>Walk-forward evaluation</h3><div id="research-walk-forward">Not run.</div></article></div>
   <details class="advanced-only research-details"><summary>Dataset, configuration and assumptions</summary><pre id="research-provenance">No provenance supplied.</pre></details>
-  <div class="naked-subtitle">Last 50 simulated research entries</div><div class="table-scroll"><table><thead><tr><th>ENTERED (UTC source time)</th><th>DIRECTION</th><th>ENTRY</th><th>EXIT</th><th>THEORETICAL P&amp;L</th></tr></thead><tbody id="naked-trades"></tbody></table></div>
+  <div class="lab-subtitle">Last 50 simulated research entries</div><div class="table-scroll"><table><thead><tr><th>ENTERED (UTC source time)</th><th>DIRECTION</th><th>ENTRY</th><th>EXIT</th><th>THEORETICAL P&amp;L</th></tr></thead><tbody id="lab-trades"></tbody></table></div>
  </section>
- <section class="panel naked-events-panel"><div class="panel-header"><div><span class="small-tag">04 / AUTOMATED POSITION PRACTICE</span><h2>Virtual positions (no broker funds)</h2></div><span class="naked-engine-pill" id="naked-paper-balance">$10,000.00 PAPER</span></div>
-  <p class="naked-result-copy">Paper positions queue for the next completed candle open, with a pattern-extreme stop, fixed 2R target and 0.5% default virtual equity risk. Estimated spread, slippage and adverse stop gaps are modeled; financing and actual liquidity are not. These are virtual positions, not Deriv orders. The program must remain running for automatic updates.</p>
-  <div class="table-scroll"><table><thead><tr><th>MARKET / FRAME</th><th>DIRECTION</th><th>ENTRY</th><th>STOP</th><th>TARGET</th><th>STATUS</th><th>VIRTUAL P&amp;L</th></tr></thead><tbody id="naked-paper-rows"><tr><td class="empty-row" colspan="7">No paper positions yet.</td></tr></tbody></table></div></section>
- <section class="panel naked-events-panel"><div class="panel-header"><div><span class="small-tag">04 / BROKER SIGNAL AUDIT</span><h2>Confirmed price-action signals</h2></div><span class="naked-engine-pill">ACCOUNT-SCOPED JOURNAL</span></div>
-  <div class="table-scroll"><table><thead><tr><th>LOGGED AT</th><th>DERIV MARKET</th><th>STRATEGY</th><th>SIDE</th><th>EVENT</th></tr></thead><tbody id="naked-events"><tr><td class="empty-row" colspan="5">Connect to Deriv and start monitoring to record strategy signals.</td></tr></tbody></table></div>
+ <section class="panel lab-events-panel"><div class="panel-header"><div><span class="small-tag">04 / AUTOMATED POSITION PRACTICE</span><h2>Virtual positions (no broker funds)</h2></div><span class="lab-engine-pill" id="lab-paper-balance">$10,000.00 PAPER</span></div>
+  <p class="lab-result-copy">Paper positions queue for the next completed candle open, with a rule-defined volatility stop, fixed 2R target and 0.5% default virtual equity risk. Estimated spread, slippage and adverse stop gaps are modeled; financing and actual liquidity are not. These are virtual positions, not Deriv orders. The program must remain running for automatic updates.</p>
+  <div class="table-scroll"><table><thead><tr><th>MARKET / FRAME</th><th>DIRECTION</th><th>ENTRY</th><th>STOP</th><th>TARGET</th><th>STATUS</th><th>VIRTUAL P&amp;L</th></tr></thead><tbody id="lab-paper-rows"><tr><td class="empty-row" colspan="7">No paper positions yet.</td></tr></tbody></table></div></section>
+ <section class="panel lab-events-panel"><div class="panel-header"><div><span class="small-tag">04 / BROKER SIGNAL AUDIT</span><h2>Confirmed indicator signals</h2></div><span class="lab-engine-pill">ACCOUNT-SCOPED JOURNAL</span></div>
+  <div class="table-scroll"><table><thead><tr><th>LOGGED AT</th><th>DERIV MARKET</th><th>STRATEGY</th><th>SIDE</th><th>EVENT</th></tr></thead><tbody id="lab-events"><tr><td class="empty-row" colspan="5">Connect to Deriv and start monitoring to record strategy signals.</td></tr></tbody></table></div>
  </section>
- <div class="risk-box"><strong>Important: the book's forex trades are not the same as Deriv options contracts.</strong><p>In Naked Forex, positions may use stop losses, targets at zones and trades held for days, weeks or months. This new lab uses explicit closed-candle interpretations and a hypothetical fixed-duration binary payout model for research. Paper positions can be simulated on higher timeframes with a stop and 2R target; only short-duration options use actual Deriv demo orders. Real-money unattended automation, martingale and guaranteed-profit claims are deliberately excluded.</p></div>
+ <div class="risk-box"><strong>Separate research assumptions from broker execution.</strong><p>The indicator library contains independent programmed rules, not licensed copies of another platform or a claim that a strategy is profitable. Research uses completed candles and hypothetical fixed-duration option payouts. Paper positions can be simulated on higher timeframes with a stop and 2R target; only short-duration options use actual Deriv demo orders. Real-money unattended automation, martingale and guaranteed-profit claims are deliberately excluded.</p></div>
 </section>
 <section class="page" id="page-deriv">
  <div class="page-heading"><div><div class="eyebrow">OFFICIAL OPTIONS API · AUTHENTICATED SESSION</div><h1>Deriv broker <span class="heading-shine">✳</span></h1><p>Broker data and actual demo trades stay separate from the synthetic simulator.</p></div><button class="button button-outline" id="deriv-refresh">↻ Refresh balance & markets</button></div>
@@ -143,8 +143,8 @@
   </article>
   <article class="panel broker-card"><div class="panel-header"><div><span class="small-tag">02 / BROKER SNAPSHOT</span><h2>Account & execution</h2></div></div>
    <div class="broker-balance" id="deriv-balance">—</div><p class="small-tag" id="deriv-account-label">NO BROKER SESSION</p>
-   <div class="broker-details"><div><span>Trading mode</span><strong id="deriv-mode">Disconnected</strong></div><div><span>Demo robot</span><strong id="deriv-auto-state">Stopped</strong></div><div><span>Live permission</span><strong id="deriv-live-state">Locked by default</strong></div></div>
-   <div class="info-note" id="deriv-message">No broker operations have occurred. No broker operations have occurred in this session.</div>
+   <div class="broker-details"><div><span>Trading mode</span><strong id="deriv-mode">Disconnected</strong></div><div><span>Demo robot</span><strong id="deriv-auto-state">Stopped</strong></div><div><span>Live permission</span><strong id="deriv-live-state">Unavailable in this release</strong></div></div>
+   <div class="info-note" id="deriv-message">No broker operations have occurred in this session.</div>
    <p class="disclaimer-tiny">Use Refresh to reconcile locally recorded trades against Deriv contract status. The existing local simulation is not your Deriv demo account.</p>
   </article>
  </div>
@@ -208,6 +208,6 @@
 <div class="toast-container" id="toast-container" aria-live="polite"></div>
 <script src="/app.js" defer></script>
 <script src="/deriv_ui.js" defer></script>
-<script src="/strategy_ui.js" defer></script>
+<script src="/strategies_ui.js" defer></script>
 <script src="/terminal_controls.js" defer></script>
 </body></html>

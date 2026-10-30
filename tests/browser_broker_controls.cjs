@@ -14,7 +14,7 @@ const base=process.env.MIKEIZU_BROKER_BASE_URL||'http://127.0.0.1:8892';
 const reportPath=process.env.MIKEIZU_BROKER_REPORT||'/tmp/mikeizu-broker-controls-report.json';
 const evidence={scope:'OFFLINE TEST DOUBLE: all broker balances, prices, markets, credentials and executions are fictional. No Deriv connection or broker trade.',
  tests:[],controls:{},browser_errors:[],external_browser_requests:[],network:'none'};
-let fixture=null,browser=null;
+let fixture=null,browser=null,strategyIDs=[];
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 async function api(route,body,expected=200){
  const response=await fetch(base+route,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -57,7 +57,7 @@ async function waitServer(){
  let acceptDialogs=true;
  page.on('dialog',dialog=>acceptDialogs?dialog.accept():dialog.dismiss());
  const nav=async name=>{await page.locator(`[data-page="${name}"]`).click();await page.locator('#page-'+name).waitFor({state:'visible'});};
- const refreshed=async()=>{await page.evaluate(async()=>{await loadDeriv();await terminalRefresh();await nakedPoll();});};
+ const refreshed=async()=>{await page.evaluate(async()=>{await loadDeriv();await terminalRefresh();await labPoll();});};
  const login=async mode=>{
   await nav('deriv');
   await page.locator('#deriv-app-id').fill('fixture-app');
@@ -79,6 +79,7 @@ async function waitServer(){
   return response.json();
  };
  await page.goto(base,{waitUntil:'networkidle'});
+ strategyIDs=Object.keys((await api('/api/strategy/catalog')).strategies);assert.ok(strategyIDs.length>=18);
  await page.waitForFunction(()=>document.getElementById('engine-connectivity').textContent.includes('RESPONDING'));
  await nav('deriv');
 
@@ -194,56 +195,56 @@ async function waitServer(){
   assert.equal(JSON.stringify(exported).includes('fixture-pat-not-a-real-credential'),false);
  });
 
- await nav('naked');await refreshed();
- await page.waitForFunction(()=>document.getElementById('naked-symbol').options.length===3);
- await page.locator('#naked-symbol').selectOption('R_100');await page.locator('#naked-source').selectOption('deriv');
- await check('Seven programmed strategies can each start and stop monitor mode',['naked-strategy','naked-action','naked-start','naked-stop','naked-symbol'],async()=>{
-  await page.locator('#naked-action').selectOption('monitor');
-  for(const strategy of ['kangaroo','shadow','belt','wammie','moolah','last_kiss','trendy_kangaroo']){
-   await page.locator('#naked-strategy').selectOption(strategy);
+ await nav('strategies');await refreshed();
+ await page.waitForFunction(()=>document.getElementById('lab-symbol').options.length===3);
+ await page.locator('#lab-symbol').selectOption('R_100');await page.locator('#lab-source').selectOption('deriv');
+ await check('Catalog indicator strategies can each start and stop monitor mode',['lab-strategy','lab-action','lab-start','lab-stop','lab-symbol'],async()=>{
+  await page.locator('#lab-action').selectOption('monitor');
+  for(const strategy of strategyIDs){
+   await page.locator('#lab-strategy').selectOption(strategy);
    const start=page.waitForResponse(r=>r.url().endsWith('/api/strategy/start'));
-   await page.locator('#naked-start').click();assert.equal((await start).status(),200);
-   await page.waitForFunction(()=>document.getElementById('naked-stop').disabled===false);
+   await page.locator('#lab-start').click();assert.equal((await start).status(),200);
+   await page.waitForFunction(()=>document.getElementById('lab-stop').disabled===false);
    const state=await api('/api/strategy/status');assert.equal(state.strategy,strategy);assert.equal(state.action,'monitor');
    const stop=page.waitForResponse(r=>r.url().endsWith('/api/strategy/stop'));
-   await page.locator('#naked-stop').click();assert.equal((await stop).status(),200);
+   await page.locator('#lab-stop').click();assert.equal((await stop).status(),200);
   }
  });
- await check('Every trading horizon starts in monitor mode with broker fixture capability',['naked-profile','naked-timeframe'],async()=>{
+ await check('Every trading horizon starts in monitor mode with broker fixture capability',['lab-profile','lab-timeframe'],async()=>{
   const profiles={scalping:['1m','5m'],intraday:['15m','1h'],swing:['4h','1d'],position:['1w','1mo']};
   for(const [profile,frames] of Object.entries(profiles)){
-   await page.locator('#naked-profile').selectOption(profile);
+   await page.locator('#lab-profile').selectOption(profile);
    for(const frame of frames){
-    await page.locator('#naked-timeframe').selectOption(frame);
+    await page.locator('#lab-timeframe').selectOption(frame);
     const start=page.waitForResponse(r=>r.url().endsWith('/api/strategy/start'));
-    await page.locator('#naked-start').click();assert.equal((await start).status(),200);
+    await page.locator('#lab-start').click();assert.equal((await start).status(),200);
     assert.equal((await api('/api/strategy/status')).frame,frame);
-    const stop=page.waitForResponse(r=>r.url().endsWith('/api/strategy/stop'));await page.locator('#naked-stop').click();await stop;
+    const stop=page.waitForResponse(r=>r.url().endsWith('/api/strategy/stop'));await page.locator('#lab-stop').click();await stop;
    }
   }
  });
- await check('Paper/demo action and expiry controls configure separately from real execution',['naked-action','naked-expiry-minutes','naked-stake'],async()=>{
-  await page.locator('#naked-profile').selectOption('scalping');await page.locator('#naked-timeframe').selectOption('1m');
-  await page.locator('#naked-stake').fill('0.35');
+ await check('Paper/demo action and expiry controls configure separately from real execution',['lab-action','lab-expiry-minutes','lab-stake'],async()=>{
+  await page.locator('#lab-profile').selectOption('scalping');await page.locator('#lab-timeframe').selectOption('1m');
+  await page.locator('#lab-stake').fill('0.35');
   for(const action of ['paper_trade','demo_trade']){
-   await page.locator('#naked-action').selectOption(action);
-   if(action==='demo_trade')await page.locator('#naked-expiry-minutes').selectOption('2');
-   const start=page.waitForResponse(r=>r.url().endsWith('/api/strategy/start'));await page.locator('#naked-start').click();assert.equal((await start).status(),200);
+   await page.locator('#lab-action').selectOption(action);
+   if(action==='demo_trade')await page.locator('#lab-expiry-minutes').selectOption('2');
+   const start=page.waitForResponse(r=>r.url().endsWith('/api/strategy/start'));await page.locator('#lab-start').click();assert.equal((await start).status(),200);
    assert.equal((await api('/api/strategy/status')).action,action);
-   const stop=page.waitForResponse(r=>r.url().endsWith('/api/strategy/stop'));await page.locator('#naked-stop').click();await stop;
+   const stop=page.waitForResponse(r=>r.url().endsWith('/api/strategy/stop'));await page.locator('#lab-stop').click();await stop;
   }
   assert.equal((await api('/__test__/status')).buy_count,1,'No fictitious automatic signals are inserted for a control pass');
  });
- await check('Broker-data research comparison refuses unsupported strategy promotion',['naked-scan-all','naked-export-all','naked-start-best'],async()=>{
+ await check('Broker-data research comparison refuses unsupported strategy promotion',['lab-scan-all','lab-export-all','lab-start-best'],async()=>{
   const scanned=page.waitForResponse(r=>r.url().endsWith('/api/strategy/scan-all'));
-  await page.locator('#naked-scan-all').click();const response=await scanned;assert.equal(response.status(),200);
-  const report=await response.json();assert.equal(report.strategies_tested,7);assert.equal(report.qualified,false);
-  assert.equal(await page.locator('#naked-start-best').isDisabled(),true);
+  await page.locator('#lab-scan-all').click();const response=await scanned;assert.equal(response.status(),200);
+  const report=await response.json();assert.equal(report.strategies_tested,strategyIDs.length);assert.equal(report.qualified,false);
+  assert.equal(await page.locator('#lab-start-best').isDisabled(),true);
   await api('/api/strategy/start-best',{action:'demo_trade'},400);
-  const downloaded=page.waitForEvent('download');await page.locator('#naked-export-all').click();
+  const downloaded=page.waitForEvent('download');await page.locator('#lab-export-all').click();
   const download=await downloaded;const data=JSON.parse(await fs.readFile(await download.path(),'utf8'));
-  assert.equal(data.strategies_tested,7);assert.equal(data.qualified,false);
-  evidence.controls['naked-start-best']={status:'gate_verified_mocked',test:'No validated fixture strategy means activation remains disabled; no forged qualification.'};
+  assert.equal(data.strategies_tested,strategyIDs.length);assert.equal(data.qualified,false);
+  evidence.controls['lab-start-best']={status:'gate_verified_mocked',test:'No validated fixture strategy means activation remains disabled; no forged qualification.'};
  });
  await nav('risk');await refreshed();
  await check('Connected emergency stop persists and explicit resume restarts no robot',['global-kill','risk-resume-phrase','risk-resume'],async()=>{
@@ -300,7 +301,7 @@ async function waitServer(){
  evidence.controls['button:submit:Save account risk limits']=evidence.controls['risk-config-form submit'];
  evidence.controls['a:https://developers.deriv.com/:Deriv Developer Portal']={status:'external_link_inspected',test:'HTTPS destination and safe target/rel inspected; external service not navigated or verified.'};
  evidence.worker_scope='Fixture does not start autonomous worker loops. These checks verify actual HTTP control configuration and transitions; signal-to-order worker behavior needs the Python suites.';
- evidence.controls['naked-start-best']={status:'gate_verified_mocked',test:'No validated fixture strategy means activation stays disabled; no forged qualification or claimed successful deployment.'};
+ evidence.controls['lab-start-best']={status:'gate_verified_mocked',test:'No validated fixture strategy means activation stays disabled; no forged qualification or claimed successful deployment.'};
  evidence.summary={passed:evidence.tests.length,failed:0,controls:Object.keys(evidence.controls).filter(key=>!key.endsWith(' submit')).length,evidence_entries:Object.keys(evidence.controls).length,
   real_broker_verified:false,orders_submitted_to_broker:0,fixture_purchase_calls:(await api('/__test__/status')).buy_count};
  await persist();

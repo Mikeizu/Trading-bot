@@ -1,53 +1,60 @@
-# Architecture and trust boundaries
+# Architecture and execution boundaries
 
-The app is a single-user Python process serving a static browser UI on loopback. SQLite holds separate research/practice/broker/risk records. Credentials stay in browser/process memory during an authorized session; reconnecting requires fresh authentication. There is no external AI service or remote-hosting control plane.
+The application is a single-user Python process serving a browser terminal on loopback. Strategy evaluation is deterministic and uses completed OHLC bars. Credentials remain in process/browser memory during an authorized session; state databases contain decisions and outcomes rather than tokens.
 
 ```mermaid
 flowchart LR
-    UI[Local browser UI\nexplicit account and mode labels] --> HTTP[Loopback HTTP API\nHost and Origin checks]
-    HTTP --> SIM[Synthetic simulator\nserver.py and engine.py]
-    HTTP --> LAB[Research and ranking\nnaked_strategies.py / strategy_selector.py]
-    HTTP --> SUP[Strategy supervisor\nstrategy_extension.py]
-    LAB --> ANA[Cost analytics + provenance\nchronological validation]
-    SUP --> REG[Deterministic regime classifier\nmarket_regime.py]
-    SUP --> PAPER[Virtual paper engine\nno broker purchases]
-    SUP --> CTRL[Broker controller\nderiv_bridge.py]
-    HTTP --> CTRL
-    CTRL --> RISK[Independent persistent risk gate\nrisk_engine.py]
-    RISK --> RDB[(Risk state + audit chain)]
-    CTRL --> ORD[(Broker order journal\nPENDING / OPEN / CLOSED / UNCERTAIN)]
-    CTRL --> TX[Authenticated Deriv transport\nTLS / request IDs / no blind buy retry]
-    TX --> API[Official Deriv Options APIs\naccount list / OTP / WebSocket]
-    SIM --> SDB[(Synthetic account DB)]
-    PAPER --> PDB[(Paper positions DB)]
-    SUP --> SIG[(Signal events DB)]
-    LAB -. research only .-> REPORT[Exported simulation reports]
+    UI[Local browser terminal] --> API[Loopback HTTP API
+Host and Origin checks]
+    API --> DATA[Shared validated OHLC
+market_data.py]
+    API --> SIM[Synthetic simulator
+server.py]
+    DATA --> ENG[Indicator rules and catalog
+engine.py / indicator_strategies.py]
+    ENG --> LAB[Chronological research
+strategy_research.py]
+    LAB --> SELECT[Training-only comparison
+strategy_selector.py]
+    LAB --> METRIC[Net metrics and provenance
+research_analytics.py]
+    ENG --> SUP[Strategy supervisor
+strategy_extension.py]
+    SUP --> REG[Heuristic regime eligibility
+market_regime.py]
+    SUP --> PAPER[Virtual paper positions
+paper_engine.py]
+    SUP --> CTRL[Broker controller
+deriv_bridge.py]
+    API --> CTRL
+    CTRL --> RISK[Persistent independent risk gate
+risk_engine.py]
+    CTRL --> ORD[(Durable broker journal)]
+    RISK --> RDB[(Risk state and audit)]
+    CTRL --> TX[Official Deriv transport
+TLS and request IDs]
+    TX --> DERIV[Account / OTP / WebSocket API]
+    SUP --> SIG[(Signal and lifecycle journal)]
+    PAPER --> PDB[(Separate virtual ledger)]
+    LAB --> REPORT[Exported research evidence]
 ```
 
-## Execution boundary
+## Signal and order boundary
 
-A signal is an observation produced from completed candles, not an order. A quote is a time-limited proposal, not an accepted fill. Before a purchase, the broker controller verifies the connected demo identity, symbol/duration availability, fresh balance/portfolio, unresolved journal entries, and risk approval. The order is reserved durably before the network buy request. A confirmed broker contract identifier establishes acceptance; missing or ambiguous acknowledgement becomes unresolved state and blocks further entries.
+A rule may produce a candidate side, explanation, evidence, version, active parameters and invalidation. A candidate is not a purchase. Monitoring records signals without orders. Paper mode queues a virtual entry for the next supported bar. Demo mode still requires account identity, allowed market/duration, fresh state, calendar/regime eligibility, no unresolved execution and an independent risk reservation.
 
-Every path to a broker buy, including manual and internal demo actions, crosses this controller and its independent risk gate. Live purchases are disabled. Historical ranking cannot authorize real-money execution. Reconnection does not resume robots automatically or erase unresolved orders and risk state.
+The controller writes a durable pending order before sending one buy. A valid broker contract identifier records acceptance; ambiguity creates an unresolved state that blocks further purchases. A quote token is consumed once. Reconnection and process restarts do not automatically activate robots or erase risk state. Every real-account purchase remains disabled.
 
-## Separation of product models
+## Separate product and performance models
 
-- **Synthetic simulator:** Generated OHLC bars and a separate practice balance. No broker data or money.
-- **Fixed-expiry research:** Theoretical Rise/Fall payout at a disclosed future bar under cost assumptions, with independently funded training/holdout experiments and explicit aggregate capital. Not a stop-loss forex strategy or actual Deriv quotation.
-- **Virtual paper positions:** Internal long/short stop/target ledger using closed-market-candle data and conservative virtual fills. No broker position is created.
-- **Broker demo Options:** Account-authorized short-duration CALL/PUT purchases with broker-set payouts and maximum stake risk. These are not MT5 forex/CFD positions.
-- **Real account:** Read-only connectivity where supported. All purchases remain locked.
+Synthetic practice, historical fixed-expiry research, virtual stop/target positions and broker demo contracts have different prices, costs and accounting. Reports do not combine them into one profit or accuracy total. A chart timeframe does not imply that a broker offers a contract with the same duration. The Options model is not an MT5 forex/CFD position model.
 
-Performance histories must remain separate. Joining them to report a single “profit” total would be misleading.
+Research uses independent funded training and holdout experiments. Training-only expanding folds, overlap purging and fixed hypotheses prevent specific leakage paths; they do not remove repeated-testing, selection or market-change risk. Broader strategy catalogs increase the need to preserve untouched data.
 
-## Persistence and recovery
+## Persistence, upgrade and security
 
-The default state directory is the checkout for compatibility; `MIKEIZU_DATA_DIR` can select a private external directory. Databases are ignored by Git. At startup, additive schema initialization preserves existing journals. Automation starts stopped. Persistent risk halt/configuration and unresolved broker orders remain effective across restarts. See [API_AND_DATA.md](API_AND_DATA.md) for schemas and [OPERATIONS.md](OPERATIONS.md) for safe backup/restore steps.
+`MIKEIZU_DATA_DIR` selects a private state directory; default paths preserve local compatibility. Current signal and paper files are `strategy_signals.db` and `paper_positions.db`. Legacy files are preserved by the upgrade process, and historical rows retain their original labels. Removed strategy IDs cannot select the old detectors.
 
-Hash-linked audit events and materialized-state checkpoints detect modifications to retained journal/risk rows when verified. They are local evidence only: a privileged attacker with write access to the database and code can rewrite the entire chain. External signed checkpoints, encrypted backups, and an independent monitoring service remain future work.
+Risk/order audit chains include materialized-state checks, but a complete unsigned database rollback or a privileged rewrite remains outside their guarantee. Back up all related databases as one consistent set. See [OPERATIONS.md](OPERATIONS.md).
 
-## Security and unsupported deployment
-
-Loopback binding, Host/Origin checks, same-origin requests, content type/size validation and secret-safe error handling reduce local browser attack exposure. They are not multi-user authentication or an authorization model for an exposed server. Do not bind publicly, reverse-proxy the trading API, or assume a cloud preview is safe. Remote hosting requires a separate design for authenticated sessions, authorization, TLS termination, secret management, process isolation, monitoring and recovery.
-
-A licensed calendar connector, official MT5 adapter, margin engine, calibrated machine-learning model, and jurisdictional approval workflow are absent from this architecture. They cannot be replaced by permissive flags or synthetic data.
+Loopback binding, origin/host validation, bounded JSON, verified TLS and secret-safe errors are local protections, not multi-user authentication. Public/VPS hosting, signed releases, encrypted managed credentials, an official MT5 adapter and independent production/security/legal approval require a separate implementation and review.

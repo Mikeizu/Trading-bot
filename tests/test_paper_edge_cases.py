@@ -17,7 +17,7 @@ class PaperEdgeTests(unittest.TestCase):
     def tearDown(self):self.tmp.cleanup()
 
     def queue(self,stamp=1000,frame='5m'):
-        return self.book.open('account','EURUSD',frame,'kangaroo',
+        return self.book.open('account','EURUSD',frame,'RSI',
             {'side':'UP','stop':99,'confirmed_at':stamp},100)
 
     @staticmethod
@@ -27,7 +27,7 @@ class PaperEdgeTests(unittest.TestCase):
     def test_invalid_signal_shapes_reject_without_database_rows(self):
         for signal in (None,[],True,'signal'):
             with self.subTest(signal=signal),self.assertRaises(PaperError):
-                self.book.open('account','EURUSD','5m','kangaroo',signal,100)
+                self.book.open('account','EURUSD','5m','RSI',signal,100)
         self.assertEqual(self.book.positions('account'),[])
 
     def test_invalid_row_shapes_reject_without_advancing_pending_order(self):
@@ -61,7 +61,7 @@ class PaperEdgeTests(unittest.TestCase):
                 PaperBook(Path(self.tmp.name)/'rejected.db',**{key:value})
         for entry in (1e-200,1e200):
             with self.subTest(entry=entry),self.assertRaises(PaperError):
-                self.book.open('account','EURUSD','5m','kangaroo',
+                self.book.open('account','EURUSD','5m','RSI',
                     {'side':'UP','stop':entry*.99,'confirmed_at':1000},entry)
         self.assertEqual(self.book.positions('account'),[])
 

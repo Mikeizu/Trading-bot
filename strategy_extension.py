@@ -8,13 +8,30 @@ from datetime import datetime,timezone
 from contextlib import contextmanager
 import json,sqlite3,threading,time,math,hashlib
 from pathlib import Path
-from naked_strategies import TIMEFRAMES, PROFILES,STRATEGIES,StrategyError,backtest,candles_valid,confirmed_signal,resample,sample_candles,validate_parameters,STRATEGY_VERSION
+from market_data import TIMEFRAMES, PROFILES, StrategyError, candles_valid, resample, sample_candles
+from indicator_strategies import STRATEGIES, validate_parameters, evaluate_signal, warmup_bars, STRATEGY_VERSION
+from strategy_research import backtest
 from deriv_bridge import BridgeError
 from paper_engine import PaperBook
 from strategy_selector import compare_all
 from market_regime import classify_regime
 
 GRANULARITIES={'1m':60,'5m':300,'15m':900,'1h':3600,'4h':14400,'1d':86400,'1w':86400,'1mo':86400}
+
+def confirmed_signal(rows,strategy,parameters=None):
+    """Evaluate one indicator rule on closed bars; no order is implied.
+
+    The evaluator supplies the programmed explanation, indicator evidence and
+    an explicitly virtual ATR invalidation for the separate paper model.
+    """
+    if not rows:return None
+    result=evaluate_signal(rows,None,len(rows)-1,strategy,parameters=parameters)
+    if not isinstance(result,dict) or result.get('side') not in (None,'UP','DOWN'):
+        raise StrategyError('Indicator evaluator returned an invalid signal')
+    if result.get('side') and (not isinstance(result.get('explanation'),str) or not result['explanation']
+            or not isinstance(result.get('evidence',{}),dict)):
+        raise StrategyError('Indicator signal explanation and evidence are required')
+    return result if result.get('side') else None
 
 def _request_object(value):
     if not isinstance(value,dict):raise StrategyError('Strategy request must be a JSON object')
@@ -32,6 +49,7 @@ def _limit(value):
 class SignalBook:
     def __init__(self,path):
         self.path=Path(path)
+        self.path.parent.mkdir(parents=True,exist_ok=True)
         self.lock=threading.RLock()
         with self._connect() as c:
             c.execute('''CREATE TABLE IF NOT EXISTS strategy_events (
@@ -101,15 +119,15 @@ class StrategySupervisor:
     def __init__(self,broker,db_path):
         self.broker=broker
         self.book=SignalBook(db_path)
-        self.paper=PaperBook(Path(db_path).with_name("naked_paper.db"))
+        self.paper=PaperBook(Path(db_path).with_name("paper_positions.db"))
         self.lock=threading.RLock()
         self.active=False
-        self.strategy='kangaroo';self.profile='scalping';self.frame='5m'
+        self.strategy='RSI';self.profile='scalping';self.frame='5m'
         self.symbol='';self.action='monitor';self.stake=1;self.expiry_minutes=3
         self.last_candle=None;self.account_id='';self.last_note='Stopped'
         self.last_error='';self.last_check=None
         self.best_selection=None;self.auto_selected=False;self.min_demo_payout=None
-        self.parameters=validate_parameters();self.regime_thresholds=None
+        self.parameters=validate_parameters(self.strategy);self.regime_thresholds=None
         self.last_regime=None;self.last_calendar=None;self.last_explanation=None;self.account_mode=''
 
     def _execution_enabled(self):
@@ -170,7 +188,7 @@ class StrategySupervisor:
                 raise BridgeError('Connect to your Deriv broker account first')
             strat=obj.get('strategy');profile=obj.get('profile');frame=obj.get('timeframe')
             sym=obj.get('symbol');action=obj.get('action','monitor')
-            if not isinstance(strat,str) or strat not in STRATEGIES:raise StrategyError('Unknown Naked Forex strategy')
+            if not isinstance(strat,str) or strat not in STRATEGIES:raise StrategyError('Unknown indicator strategy')
             if not isinstance(profile,str) or profile not in PROFILES or not isinstance(frame,str) or frame not in PROFILES[profile]['timeframes']:
                 raise StrategyError('Timeframe does not match the trading style')
             if not isinstance(sym,str):raise StrategyError('Market symbol must be text')
@@ -179,7 +197,7 @@ class StrategySupervisor:
             if action not in ('monitor','paper_trade','demo_trade'):
                 raise StrategyError('Choose monitor, virtual paper position, or demo option')
             if action!='monitor':self._execution_enabled()
-            parameters=validate_parameters(obj.get('parameters'))
+            parameters=validate_parameters(strat,obj.get('parameters'))
             thresholds=obj.get('regime_thresholds')
             classify_regime([],thresholds=thresholds)  # validate before activation
             try:stake=float(obj.get('stake',1));horizon=float(obj.get('expiry_minutes',3));expiration=int(horizon)
@@ -191,7 +209,7 @@ class StrategySupervisor:
                 if self.broker.mode!='demo':raise BridgeError('Only a Deriv DEMO account may execute automated orders')
                 if frame not in ('1m','5m','15m'):
                     raise BridgeError('Automatic Deriv Rise/Fall orders are limited to 1m/5m/15m signal charts; longer-term signals are monitor-only')
-                if self.broker.automation:raise BridgeError('Stop the existing Deriv indicator robot before starting the Naked Forex robot')
+                if self.broker.automation:raise BridgeError('Stop the existing broker indicator robot before starting strategy automation')
                 durations=self.broker.available_durations(sym)
                 requested=expiration
                 if requested not in durations['UP'] or requested not in durations['DOWN']:
@@ -245,7 +263,7 @@ class StrategySupervisor:
         return sample_candles(count=1400,granularity=base)
 
     def _history(self,obj):
-        """One immutable source used for ALL competing patterns in a scan."""
+        """One immutable source used for all competing indicator rules."""
         _request_object(obj)
         src=obj.get('source','synthetic');frame=obj.get('timeframe','5m')
         _frame(frame)
@@ -270,7 +288,7 @@ class StrategySupervisor:
 
     def research(self,obj):
         rows,src,frame=self._history(obj)
-        report=backtest(rows,obj.get('strategy','kangaroo'),obj.get('profile','scalping'),frame,
+        report=backtest(rows,obj.get('strategy','RSI'),obj.get('profile','scalping'),frame,
             payout=obj.get('payout',.8),stake=obj.get('stake',1),
             expiry_bars=obj.get('expiry_bars',3),target_win_rate=obj.get('target_win_rate',65),
             **self._research_options(obj,src))
@@ -283,6 +301,7 @@ class StrategySupervisor:
         return {'commission_per_trade':obj.get('commission_per_trade',0),
                 'spread_bps':obj.get('spread_bps',1),'slippage_bps':obj.get('slippage_bps',.5),
                 'parameters':obj.get('parameters'),'regime_filter':obj.get('regime_filter',False),
+                'regime_thresholds':obj.get('regime_thresholds'),
                 'source':src,'instrument':obj.get('symbol') or obj.get('instrument'),
                 'initial_balance':obj.get('initial_balance',1000.)}
 
@@ -301,10 +320,24 @@ class StrategySupervisor:
         # used to silently turn a requested 1.5-bar horizon into one bar.
         payout=obj.get('payout',.8);stake=obj.get('stake',1)
         expiry_bars=obj.get('expiry_bars',3);target=obj.get('target_win_rate',65)
+        research_options=self._research_options(obj,src)
+        parameters_by_strategy=obj.get('parameters_by_strategy')
+        if parameters_by_strategy is not None and not isinstance(parameters_by_strategy,dict):
+            raise StrategyError('Strategy parameter overrides must be an object keyed by strategy ID')
+        parameters_by_strategy=dict(parameters_by_strategy or {})
+        selected_parameters=research_options.pop('parameters')
+        if selected_parameters:
+            selected_id=obj.get('strategy')
+            if not isinstance(selected_id,str) or selected_id not in STRATEGIES:
+                raise StrategyError('A valid selected strategy is required for its parameter overrides')
+            if selected_id in parameters_by_strategy:
+                raise StrategyError('Supply the selected strategy parameters only once')
+            parameters_by_strategy[selected_id]=selected_parameters
         compared=compare_all(rows,profile=obj.get('profile','scalping'),timeframe=frame,
                              payout=payout,stake=stake,expiry_bars=expiry_bars,
                              target_win_rate=target,ranking_weights=obj.get('ranking_weights'),
-                             **self._research_options(obj,src))
+                             parameters_by_strategy=parameters_by_strategy,
+                             **research_options)
         payout=float(payout);stake=float(stake);expiry_bars=int(expiry_bars);target=float(target)
         compared.update({'source':self._source_label(src),'source_kind':src,
                 'symbol':obj.get('symbol') if src=='deriv' else None,
@@ -335,14 +368,27 @@ class StrategySupervisor:
                 'mode':self.broker.mode if linked else None,
                 'created_at':int(time.time()),'assumed_payout':payout,
                 'expiry_bars':expiry_bars,
-                'parameters':validate_parameters(obj.get('parameters')),
+                'parameters':self._selected_parameters(compared),
                 'regime_thresholds':obj.get('regime_thresholds'),
                 'research_options':self._research_options(obj,src),
                 'last_market_time':rows[-1]['time'] if rows else None}
         return compared
 
+    @staticmethod
+    def _selected_parameters(compared):
+        """Retain the actual research winner's rules, never browser winner data."""
+        winner=compared.get('winner')
+        if winner is None:return None
+        if not isinstance(winner,str) or winner not in STRATEGIES:
+            raise StrategyError('Research returned an unsupported strategy winner')
+        parameters=compared.get('winner_parameters')
+        if parameters is None:
+            row=next((r for r in compared.get('ranked',[]) if r.get('strategy')==winner),{})
+            parameters=row.get('parameters')
+        return validate_parameters(winner,parameters)
+
     def activate_best(self,obj):
-        """Start the server-selected pattern. Client cannot supply or forge winner."""
+        """Start the server-selected indicator. Client cannot forge the winner."""
         _request_object(obj)
         with self.broker.lock,self.lock:
             selection=self.best_selection
@@ -404,8 +450,9 @@ class StrategySupervisor:
                 if not calendar['allowed'] or not fresh:
                     self.paper.cancel_pending(acct,sym,frame,'Calendar restricted or market data stale before virtual entry')
                 self.paper.reconcile(acct,sym,frame,rows)
-            if len(rows)<70:
-                with self.lock:self.last_note=f'Need at least 70 completed {frame} candles (have {len(rows)}); no order.'
+            required=warmup_bars(st,parameters)
+            if len(rows)<required:
+                with self.lock:self.last_note=f'Need at least {required} completed {frame} candles (have {len(rows)}); no order.'
                 return
             regime=classify_regime(rows,thresholds=thresholds,
                   max_age_seconds=max(3*TIMEFRAMES[frame],180),
@@ -422,13 +469,16 @@ class StrategySupervisor:
                 self.last_candle=latest;self.last_check=int(time.time())
             sig=confirmed_signal(rows,st,parameters=parameters)
             if not sig:
-                with self.lock:self.last_note=f'Checked {frame} close; no {STRATEGIES[st]["name"]} confirmation.'
+                with self.lock:self.last_note=f'Checked {frame} close; no {STRATEGIES[st]["name"]} entry signal.'
                 return
             if sig.get('confirmed_at')!=latest:
                 raise BridgeError('Signal is not linked to the latest completed candle; no order')
             evidence={'source':'deriv','instrument':sym,'timeframe':frame,'first_bar':rows[0]['time'],
                 'last_bar':latest,'bars':len(rows),'parameters':parameters,
-                'strategy_version':STRATEGY_VERSION,'regime':regime,'calendar':calendar}
+                'strategy_version':STRATEGY_VERSION,'regime':regime,'calendar':calendar,
+                'indicator_evidence':sig.get('evidence',{}),
+                'paper_invalidation':{'kind':'virtual_ATR_stop','stop':sig.get('stop'),
+                                      'broker_stop_order':False}}
             sig={**sig,'strategy_version':STRATEGY_VERSION,'regime':regime['regime'],
                  'data_hash':hashlib.sha256(json.dumps(rows,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest(),
                  'evidence':evidence}

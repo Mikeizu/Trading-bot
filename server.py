@@ -11,6 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 from engine import indicators, signal_at, backtest
+from indicator_strategies import STRATEGIES as STRATEGY_CATALOG
 
 ROOT = Path(__file__).resolve().parent
 STATIC = ROOT/'static'
@@ -18,7 +19,7 @@ DATA_DIR = Path(os.environ.get('MIKEIZU_DATA_DIR',str(ROOT))).expanduser().resol
 DATA_DIR.mkdir(parents=True,exist_ok=True)
 DB_FILE = DATA_DIR/'tradelab.db'
 ASSETS = {'EUR/USD':1.085, 'GBP/USD':1.273, 'USD/JPY':148.2, 'XAU/USD':2674., 'BTC/USD':67400., 'CUSTOM':1.}
-STRATEGIES = ('RSI','MACD','CCI','SMA','BOLLINGER','STOCHASTIC')
+STRATEGIES = tuple(STRATEGY_CATALOG)
 DEFAULT = {'balance':10000.,'asset':'EUR/USD','strategy':'RSI','stake':20.,'duration':3,'payout':0.8,
            'stop_loss':200., 'take_profit':350., 'max_stake_pct':.5,'trade_limit':40,
            'watchlist':['EUR/USD','GBP/USD','XAU/USD','BTC/USD']}
@@ -141,7 +142,8 @@ def market_advance():
                 if blocked:
                     BOT_ACTIVE=False;BOT_MESSAGE='Robot stopped: '+blocked+'.'
                 elif not stats['open_trades']:
-                    candles=candles_for(c,asset,150)
+                    warmup=STRATEGY_CATALOG[s['strategy']]['warmup_bars']
+                    candles=candles_for(c,asset,min(2500,max(200,warmup+50)))
                     sig=signal_at(candles,indicators(candles),len(candles)-1,s['strategy'])
                     if sig:
                         c.execute('''INSERT INTO trades(asset,side,stake,entry,opened_tick,expiry_tick,
@@ -248,7 +250,7 @@ def import_csv(content):
     if not epochs:epochs=[start+i*60 for i in range(len(rows))]
     # Share the research validator's supported numeric/data bounds before
     # committing history; rejected data must not poison the running workspace.
-    from naked_strategies import candles_valid
+    from market_data import candles_valid
     candles_valid([{'time':epoch,'open':r[0],'high':r[1],'low':r[2],'close':r[3]} for epoch,r in zip(epochs,rows)])
     with LOCK:
         with conn() as c:
@@ -292,7 +294,7 @@ class API(BaseHTTPRequestHandler):
                         for item in ASSETS:
                             last=c.execute('SELECT close FROM candles WHERE asset=? ORDER BY tick DESC LIMIT 1',(item,)).fetchone()
                             market[item]=last['close'] if last else None
-                        data={'settings':s,'assets':market,'strategies':STRATEGIES,'candles':recent,
+                        data={'settings':s,'assets':market,'strategies':STRATEGIES,'strategy_catalog':STRATEGY_CATALOG,'candles':recent,
                               'indicators':indicators(recent),'stats':today_stats(c),
                               'trades':[dict(x) for x in c.execute('SELECT * FROM trades ORDER BY id DESC LIMIT 150')],
                               'robot':{'active':BOT_ACTIVE,'message':BOT_MESSAGE,'tick_seconds':TICK_SECONDS,'last_tick':LAST_TICK},

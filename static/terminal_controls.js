@@ -96,7 +96,7 @@ async function terminalRefresh(){
 }
 async function terminalKill(){
  const button=tc('global-kill');button.disabled=true;
- try{await terminalRequest('risk/kill',{reason:'Operator emergency stop from trading terminal'});toast('Emergency stop saved. No new trades; open contracts remain subject to broker settlement.');await Promise.allSettled([typeof loadDeriv==='function'?loadDeriv():null,typeof nakedPoll==='function'?nakedPoll():null,typeof refresh==='function'?refresh():null]);}
+ try{await terminalRequest('risk/kill',{reason:'Operator emergency stop from trading terminal'});toast('Emergency stop saved. No new trades; open contracts remain subject to broker settlement.');await Promise.allSettled([typeof loadDeriv==='function'?loadDeriv():null,typeof labPoll==='function'?labPoll():null,typeof refresh==='function'?refresh():null]);}
  catch(error){toast('Emergency stop could not be confirmed: '+error.message+'. Stop the server and inspect the broker account.',true);tc('global-risk-notice').textContent='Emergency stop unconfirmed. Stop the server and inspect the broker account; existing contracts may remain open.';tc('global-risk-notice').classList.add('halted');}
  finally{button.disabled=false;await terminalRefresh();}
 }

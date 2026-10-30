@@ -39,10 +39,10 @@ This is a schema example, not an actual current event or valid calendar. `update
 
 | Method and route | Contract |
 |---|---|
-| `GET /api/strategy/catalog` | Seven strategy definitions and allowed profile/timeframe pairs. |
+| `GET /api/strategy/catalog` | Current technical-strategy definitions, family/rule metadata, bounded parameter specifications, warm-up requirements and allowed profile/timeframe pairs. |
 | `GET /api/strategy/status` | Active action/account/rules, latest note/error, recorded signal events, separate paper balance/positions and regime/explanation where present. |
 | `POST /api/strategy/backtest` | `{source, strategy, profile, timeframe, payout, stake, expiry_bars, target_win_rate, ...}`. Sources: `synthetic`, `csv` (validated OHLC array in `candles`), or `deriv` (connected broker symbol). Optional costs: `commission_per_trade`, `spread_bps`, `slippage_bps`; parameters/regime options supported where documented by source. Returns net metrics, train/holdout/folds, trades, provenance, costs, regime and warnings. |
-| `POST /api/strategy/scan-all` | Same history/model controls, evaluated for all seven strategies. Ranks using training evidence only and tests one training candidate on the untouched holdout. No fallback winner chosen from holdout. |
+| `POST /api/strategy/scan-all` | Same history/model controls, evaluated across the current catalog. Ranks using training evidence only and tests one training candidate on the untouched holdout. No fallback winner chosen from holdout. |
 | `POST /api/strategy/start` | Explicit `{strategy, profile, timeframe, symbol, action, stake, expiry_minutes}`. `action`: `monitor`, `paper_trade`, `demo_trade`. Demo is short-expiry and account/capability/risk gated. |
 | `POST /api/strategy/start-best` | Explicit action/stake/expiry for the server-retained validated broker-data candidate. Client cannot forge a selected winner. Synthetic/CSV findings cannot authorize broker deployment. |
 | `POST /api/strategy/stop` | Stops this supervisor; existing broker contracts remain distinct. |
@@ -79,8 +79,8 @@ Databases default to the checkout or the private `MIKEIZU_DATA_DIR`. `CREATE TAB
 |---|---|---|
 | `tradelab.db` | `settings(key PK)`, `candles(asset,tick PK)`, `trades(id PK)` | Synthetic settings, generated/imported OHLC and trades with entry-time `payout`/`payout_source`. Supplied CSV epochs are preserved; missing times are labelled `custom_time_origin=inferred_one_minute_intervals`. |
 | `deriv_order_journal.db` | `orders(id PK, nonce UNIQUE)`, `order_audit(id PK)` | Account, mode, symbol/direction, stake/ask/expiry, contract ID, explicit order state/P&L, timestamps; allowlisted `context_json` containing strategy/version/timeframe/signal/regime/rationale/data hash; linked audit events and materialized-state checks. |
-| `naked_signals.db` | `strategy_events(id PK)` with unique account/symbol/timeframe/strategy/confirmation timestamp, `strategy_event_history(id PK)` | Signal mode/side/action, explanation/detail, version, regime, data hash, supporting evidence; separate append history preserves initial SIGNAL and later outcomes rather than overwriting the only record. |
-| `naked_paper.db` | `paper_positions(id PK)`, `paper_accounts(account_id PK)` | Pending/open/closed/cancelled virtual entries, stops/targets/risk, quantity, exit/gross/net/cost assumptions, signal identity, account high-water mark and halt. |
+| `strategy_signals.db` | `strategy_events(id PK)` with unique account/symbol/timeframe/strategy/confirmation timestamp, `strategy_event_history(id PK)` | Signal mode/side/action, explanation/detail, version, regime, data hash, supporting evidence; separate append history preserves initial SIGNAL and later outcomes rather than overwriting the only record. |
+| `paper_positions.db` | `paper_positions(id PK)`, `paper_accounts(account_id PK)` | Pending/open/closed/cancelled virtual entries, stops/targets/risk, quantity, exit/gross/net/cost assumptions, signal identity, account high-water mark and halt. |
 | `risk_control.db` | `risk_state(account_id,mode PK)`, `risk_reservations(nonce PK)`, `risk_audit(id PK)`, `risk_global(id=1)` | Config/baselines/peak/calendar/halt; atomic maximum-loss reservations; hash-linked decisions and global interlock. |
 
 The order journal uses schema revision 3 with additive context/audit migration and recorded materialized-row snapshots; the risk database uses schema revision 1. Migration behavior is defined in `Journal.__init__` and `RiskEngine.__init__`. Legacy orders are retained, but their original pre-audit history cannot be recreated or certified. Restoring a whole older database can evade a purely local hash chain; external anchored checkpoints remain future work.
@@ -96,3 +96,9 @@ The order journal uses schema revision 3 with additive context/audit migration a
 - Imported history cannot be synthetically extended or replace history while practice orders remain open.
 - Paper model v3 cancels pending entries when the expected next bar is missing and retains a last-checked watermark so revised old candles cannot create retroactive settlements.
 - Older saved report assumptions remain historical. Do not rewrite them to look like the current strategy/model version.
+
+## Replacement catalog and upgrade
+
+The current strategy IDs and metadata come from `/api/strategy/catalog`; original six indicator IDs remain supported. Removed book-pattern IDs are rejected. `market_data.py` holds shared OHLC/timeframe handling, `indicator_strategies.py` defines technical rules, and `strategy_research.py` owns generic chronological research. No book-pattern detector remains in the current runtime.
+
+At upgrade, legacy signal/paper SQLite files are preserved and copied into current filenames only when needed. Existing historical rows keep their original labels and cannot authorize deployment of a removed rule. Back up the complete state set first; do not mix risk/broker databases from different dates.

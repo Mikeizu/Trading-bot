@@ -104,7 +104,7 @@ class ControlApiTests(unittest.TestCase):
 
     def test_kill_keeps_orders_and_cancels_pending_paper(self):
         self.connect()
-        self.supervisor.paper.open(self.broker.account_id,'R_100','1m','kangaroo',
+        self.supervisor.paper.open(self.broker.account_id,'R_100','1m','RSI',
             {'side':'UP','stop':99,'confirmed_at':1000},100)
         quote=self.broker.new_quote('R_100','UP',1,2)
         self.broker.buy_quote(quote['token'])
@@ -120,7 +120,7 @@ class ControlApiTests(unittest.TestCase):
         self.assertEqual(self.connect()[0],200)
         now=int(time.time());last=now//60*60-lag
         rows=[{'time':last-(139-i)*60,'open':100,'high':102,'low':99,'close':101} for i in range(140)]
-        self.transport.candles=lambda symbol:rows
+        self.transport.candles=lambda symbol,count=140:rows
         self.broker.automation=True;self.broker.auto_symbol='R_100'
         if calendar:self.broker.risk.set_calendar(self.broker.account_id,'demo',[],now,now+3600,'deterministic fixture')
 
@@ -132,7 +132,8 @@ class ControlApiTests(unittest.TestCase):
 
     def test_indicator_worker_submits_once_for_completed_candle(self):
         self.prepare_indicator()
-        with patch.object(app,'signal_at',return_value='UP'):
+        with patch.object(app,'signal_at',return_value='UP'),patch.object(app,'classify_regime',return_value={
+                'trading_allowed':True,'eligible_strategies':['RSI'],'reasons':['isolated signal fixture']}):
             self.one_auto_iteration();self.one_auto_iteration()
         self.assertEqual(self.transport.buy_count,1)
         self.assertEqual(self.journal.orders(self.broker.account_id)[0]['status'],'OPEN')
@@ -152,9 +153,16 @@ class ControlApiTests(unittest.TestCase):
         with patch.object(app,'signal_at',return_value='UP'):self.one_auto_iteration()
         self.assertFalse(self.broker.automation);self.assertEqual(self.transport.buy_count,0)
 
+    def test_indicator_worker_abnormal_regime_blocks_even_with_signal(self):
+        self.prepare_indicator()
+        with patch.object(app,'signal_at',return_value='UP'):
+            self.one_auto_iteration()
+        self.assertEqual(self.transport.buy_count,0)
+        self.assertIn('regime',self.broker.last_message)
+
     def test_account_switch_cancels_supervisor_before_failed_connection(self):
         self.connect()
-        self.supervisor.configure({'strategy':'kangaroo','profile':'scalping','timeframe':'5m',
+        self.supervisor.configure({'strategy':'RSI','profile':'scalping','timeframe':'5m',
             'symbol':'R_100','action':'monitor','stake':1,'expiry_minutes':3})
         code,_,_=self.request('/api/deriv/connect',{'app_id':'test-app','token':'bad',
             'account_id':'DOT90000001','mode':'demo'})
@@ -196,13 +204,13 @@ class JournalRecoveryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'orders.db';book=app.Journal(path)
             q={'token':'once','symbol':'R_100','side':'UP','stake':1.,'ask_price':1.,'minutes':2,
-                'context':{'strategy':'kangaroo','strategy_version':'test-v1','token':'must not persist'}}
+                'context':{'strategy':'RSI','strategy_version':'test-v1','token':'must not persist'}}
             order=book.reserve('demo1','demo',q)
             book.update(order,'OPEN','123',None)
             restored=app.Journal(path)
             self.assertEqual(restored.history('demo1')[0]['status'],'OPEN')
             self.assertEqual(json.loads(restored.history('demo1')[0]['context_json']),
-                {'strategy':'kangaroo','strategy_version':'test-v1'})
+                {'strategy':'RSI','strategy_version':'test-v1'})
             with self.assertRaises(ValueError):restored.update(order,'REJECTED')
             self.assertTrue(restored.audit()['integrity'])
             with sqlite3.connect(path) as c:c.execute("UPDATE order_audit SET event_json='{}' WHERE id=1")

@@ -24,21 +24,21 @@ const executablePath=process.env.MIKEIZU_CHROMIUM||'/usr/bin/chromium';
   await page.waitForFunction(()=>document.getElementById('metric-balance').textContent!=='—');
   await page.waitForFunction(()=>document.getElementById('engine-connectivity').textContent.includes('RESPONDING'));
   assert.match(await page.locator('#workspace-mode').innerText(),/SYNTHETIC/);
-  for(const name of ['overview','naked','deriv','robot','backtest','history','risk','settings']){
+  for(const name of ['overview','strategies','deriv','robot','backtest','history','risk','settings']){
    await page.locator(`[data-page="${name}"]`).click();
    await page.locator('#page-'+name).waitFor({state:'visible'});
    assert.equal(await page.locator('#global-kill').isVisible(),true,'Emergency stop must remain visible on '+name);
   }
-  await page.locator('[data-page="naked"]').click();
-  await page.waitForFunction(()=>document.getElementById('naked-strategy').options.length===7);
-  await page.locator('#naked-source').selectOption('synthetic');
-  await page.locator('#naked-backtest').click();
-  await page.locator('#naked-result').waitFor({state:'visible',timeout:30000});
-  assert.match(await page.locator('#naked-origin').innerText(),/Synthetic/);
-  assert.match(await page.locator('#naked-breakeven').innerText(),/informational/);
+  await page.locator('[data-page="strategies"]').click();
+  await page.waitForFunction(()=>document.getElementById('lab-strategy').options.length>=18);
+  await page.locator('#lab-source').selectOption('synthetic');
+  await page.locator('#lab-backtest').click();
+  await page.locator('#lab-result').waitFor({state:'visible',timeout:30000});
+  assert.match(await page.locator('#lab-origin').innerText(),/Synthetic/);
+  assert.match(await page.locator('#lab-breakeven').innerText(),/informational/);
   assert.match(await page.locator('#research-regime').innerText(),/Classification is uncertain/);
   assert.match(await page.locator('#research-walk-forward').innerText(),/historical simulation/);
-  assert.match(await page.locator('#naked-in-sample').innerText(),/Trading costs/);
+  assert.match(await page.locator('#lab-in-sample').innerText(),/Trading costs/);
   await page.locator('#view-toggle').click();
   await page.locator('.research-assumptions summary').click();
   await page.locator('#research-commission').waitFor({state:'visible'});
@@ -58,7 +58,7 @@ const executablePath=process.env.MIKEIZU_CHROMIUM||'/usr/bin/chromium';
   assert.equal(risk.halted,false,'Explicit resume clears the stop without starting automation');
   assert.equal((await fetch(base+'/api/bootstrap').then(r=>r.json())).robot.active,false);
   await page.setViewportSize({width:390,height:844});
-  for(const name of ['overview','naked','deriv','risk','settings']){
+  for(const name of ['overview','strategies','deriv','risk','settings']){
    await page.locator(`[data-page="${name}"]`).click();
    assert.equal(await page.locator('#global-kill').isVisible(),true,'Stop control must be visible on mobile');
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);

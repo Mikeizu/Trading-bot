@@ -1,6 +1,6 @@
 'use strict';
-const CACHE='mikeizu-tradelab-research-demo-v5';
-const SHELL=['/','/styles.css','/app.js','/deriv_ui.js','/strategy_ui.js','/terminal_controls.js','/icon.svg','/manifest.webmanifest'];
+const CACHE='mikeizu-tradelab-indicator-terminal-v6';
+const SHELL=['/','/styles.css','/app.js','/deriv_ui.js','/strategies_ui.js','/terminal_controls.js','/icon.svg','/manifest.webmanifest'];
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));
 });

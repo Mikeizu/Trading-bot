@@ -85,7 +85,7 @@ Risk state covers activity recorded by the application plus broker position/bala
 
 ## Historical-data limits
 
-Historical backtests require at least 100 completed chart bars. Broker history depth may be too short after weekly/monthly aggregation, especially on continuously trading instruments; that must return insufficient data rather than invented candles. A legitimate longer preaggregated CSV can be used for research. Partial calendar-edge periods are omitted conservatively, including a Friday-ended week until a later period establishes its boundary.
+Historical research requires at least 100 completed chart bars and enough earlier data for the selected rule's warm-up; catalog metadata supplies the requirement. Broker history depth may be too short after weekly/monthly aggregation, especially on continuously trading instruments; that must return insufficient data rather than invented candles. A legitimate longer preaggregated CSV can be used for research. Partial calendar-edge periods are omitted conservatively, including a Friday-ended week until a later period establishes its boundary.
 
 ## Economic calendar and event blackouts
 
@@ -118,7 +118,7 @@ Paper accounting has its own virtual controls: initially 0.5% per trade, at most
 
 ## Backups and recovery
 
-State files include `tradelab.db`, `deriv_order_journal.db`, `naked_signals.db`, `naked_paper.db` and `risk_control.db`. See [API_AND_DATA.md](API_AND_DATA.md) for schemas. Tokens are not included.
+State files include `tradelab.db`, `deriv_order_journal.db`, `strategy_signals.db`, `paper_positions.db` and `risk_control.db`. See [API_AND_DATA.md](API_AND_DATA.md) for schemas. Tokens are not included.
 
 1. Stop the server cleanly and confirm its process exited. Record the software commit and data-directory path.
 2. Back up all databases as one consistent set. Prefer the SQLite backup API. If copying files, include any associated `-wal` and `-shm` files rather than copying only an active `.db`.
@@ -143,3 +143,11 @@ A restored backup can be older than the broker's current state. It is not proof 
 | MT5 login fails | No MT5 adapter is implemented; an Options PAT/OTP token is not an MT5 authorization fix. |
 | Browser shows stale assets | Refresh the page/service worker after an upgrade and inspect server version/status. Never rely on cached UI status as broker readiness evidence. |
 | Public/VPS hosting desired | Requires a separate authentication/security/operations design; no public deployment is authorized or verified by this package. |
+
+## Strategy-library workflow and upgrade
+
+Use Strategy Research & Automation to browse the runtime catalog, read rule/family/warm-up metadata, change bounded parameters and test the selected configuration. Preserve identical data/cost assumptions when comparing candidates. Research evidence does not grant broker permission. Source, rule version, parameters and regime reasons should remain visible in exported decisions.
+
+The previous book-pattern workspace is removed. Old rule IDs cannot be activated. Startup migration preserves original signal/paper files and retained historical rows while using `strategy_signals.db` and `paper_positions.db`. Stop the server and back up all state before the upgrade. Legacy history is not current-rule evidence.
+
+Adding more strategies does not establish improved accuracy. Assess net expectancy, drawdown, uncertainty, sample sufficiency, stability, worse-cost outcomes and fresh demo-forward behavior. Repeated searches on the same held-out interval create selection bias.

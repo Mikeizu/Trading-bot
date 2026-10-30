@@ -1,107 +1,44 @@
 {
-  "schema_version": 1,
-  "prepared_at_utc": "2026-10-29T22:29:09.488869+00:00",
-  "scope": "Private local research/demo application. Browser and Python evidence only; no guarantee of perfect behavior, profitability, or live-broker readiness.",
-  "source_reports": {
-    "offline_browser": {
-      "file": "mikeizu-control-browser-report.json",
-      "sha256": "028b4535fda39f367e3e96c94334c7ee57975e5c62384690223ac77d95cd4a94",
-      "finished_at": "2026-10-29T14:21:25.789Z"
-    },
-    "mocked_broker_browser": {
-      "file": "mikeizu-broker-controls-report.json",
-      "sha256": "60a6f2921fd1e6c9d2dc0423874f91452b174739654f33cbeb6c8c6ebd55c6db"
-    },
-    "python_statement_coverage": {
-      "file": "mikeizu-coverage.json",
-      "sha256": "2255f01a7f4c869875395cede87d3a60ca5d0951b2e89f962ab3221b7345ba74",
-      "tool_version": "7.17.0"
-    }
-  },
+  "schema_version": 2,
+  "prepared_at_utc": "2026-10-30T05:36:14.000942+00:00",
+  "scope": "v6 technical indicator research/demo terminal; no accuracy guarantee or genuine broker verification",
   "summary": {
-    "inventoried_dom_controls": 115,
+    "strategies": 24,
+    "python_tests_passed": 313,
+    "python_test_seconds": 40.389,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "offline_browser_scenarios": 24,
+    "mocked_browser_scenarios": 20,
+    "inventoried_controls": 160,
+    "unreviewed_controls": 0,
     "control_outcomes": {
-      "local_verified": 59,
+      "local_verified": 104,
       "local_and_mocked_verified": 21,
-      "mocked_verified": 31,
-      "safety_gate_verified_only": 1,
-      "external_link_reviewed_not_verified": 1,
+      "mocked_integration_verified": 31,
+      "protective_gate_verified_only": 1,
+      "external_link_reviewed_only": 1,
       "unsupported_disabled": 2
     },
-    "unreviewed_controls": 0,
-    "offline_browser_scenarios_passed": 22,
-    "mocked_broker_browser_scenarios_passed": 20,
-    "browser_javascript_errors": 0,
-    "python_tests_passed": 282,
-    "python_test_seconds": 40.015,
-    "python_tests_failed": 0,
-    "python_tests_errors": 0,
-    "python_tests_skipped": 0,
-    "real_broker_orders_submitted": 0,
-    "real_broker_verified": false,
-    "inventoried_application_callables": 195,
-    "core_modules": 11,
-    "statement_coverage_percent": 88.52408714329549,
-    "covered_statements": 2885,
-    "total_statements": 3259,
-    "missing_statements": 374,
+    "javascript_exceptions": 0,
+    "real_broker_orders": 0,
+    "authentic_broker_verified": false,
+    "statement_coverage_percent": 89.23389437028439,
     "branch_coverage_measured": false
   },
-  "interpretation": {
-    "local_verified": "Successful local/offline control behavior.",
-    "local_and_mocked_verified": "Successful local behavior plus connected behavior using the test-only fictional broker.",
-    "mocked_verified": "Successful actual local HTTP/UI behavior against fictional broker responses only.",
-    "safety_gate_verified_only": "Expected protective refusal/disabled state verified; actual authorized strategy promotion not demonstrated.",
-    "unsupported_disabled": "Unavailable feature deliberately disabled; this is a verified lock, not successful execution.",
-    "external_link_reviewed_not_verified": "Destination/HTML attributes reviewed; external service availability/authentication not tested."
-  },
-  "coverage_limits": [
-    "Statement coverage is from unittest only; separately running browser/server child processes were not combined.",
-    "Statement coverage is not branch coverage or proof that every function/input/fault path works.",
-    "The callable inventory counts top-level functions and class methods; nested functions are not counted.",
-    "Connected browser inventory contains aliases for form/submit controls; canonical DOM inventory remains 115 rather than adding alias counts.",
-    "The broker fixture does not launch autonomous worker loops. Worker signal/order paths use deterministic Python tests.",
-    "A protected disabled state is reported separately from a successful execution."
-  ],
-  "blocked_or_unrun": [
-    {
-      "check": "Authenticated Deriv REST/OTP/WebSocket, genuine quotes, orders and settlement",
-      "status": "unverified_external",
-      "reason": "No usable broker bindings were available. Current official API HTTPS reachability was denied by cloud proxy HTTP 403; saved allowance is not applied runtime proof."
+  "sources": {
+    "mikeizu-v6-control-browser-report.json": {
+      "sha256": "0c0b20e4fe29e9a8a8657986893a795b35f790971325c347bac4f130572164e0"
     },
-    {
-      "check": "Native Windows launcher/standalone executable",
-      "status": "not_run_windows",
-      "reason": "Package extraction, offline install and launcher startup were verified on Linux. Windows Python launcher is supplied but was not executed on Windows; no standalone .exe is represented as tested."
+    "mikeizu-v6-broker-controls-report.json": {
+      "sha256": "0cc567cf552af2a52b4012489ab1537773b4235f0cddf033c50e9c5896f626b7"
     },
-    {
-      "check": "Real-money execution",
-      "status": "unsupported_disabled",
-      "reason": "Disabled in code and UI; real accounts remain read-only."
-    },
-    {
-      "check": "MT5/CFD position execution",
-      "status": "not_implemented",
-      "reason": "No MT5 adapter, live margin/lot/tick/stop/fill model."
-    },
-    {
-      "check": "Automatic licensed economic-news source",
-      "status": "not_implemented",
-      "reason": "User-supplied calendar coverage/freshness/blackout guards are tested; there is no automatic licensed feed."
-    },
-    {
-      "check": "Profitability, calibrated forecasting, production security certification",
-      "status": "not_established",
-      "reason": "Software tests and simulated records do not establish financial performance or production readiness."
+    "mikeizu-v6-coverage.json": {
+      "sha256": "2660308b4b5635c91548af68fed6becc1f42da97697d476e45a602ee26f5ee8e"
     }
-  ],
-  "package_checks": {
-    "offline_dependency": "websocket-client 1.9.2 universal wheel verified against requirements.lock SHA-256",
-    "extracted_package": "Fresh extraction, private virtual environment, offline hash-verified install and Linux launcher HTTP readiness passed",
-    "windows_execution_verified": false,
-    "python_required": "3.10 or newer"
   },
-  "offline_browser_scenarios": [
+  "offline_scenarios": [
     {
       "name": "All navigation buttons, deep links and reload persistence",
       "status": "passed"
@@ -116,6 +53,14 @@
     },
     {
       "name": "Beginner and advanced views persist; disclosures open",
+      "status": "passed"
+    },
+    {
+      "name": "Strategy family/search filters, every parameter control and default restoration",
+      "status": "passed"
+    },
+    {
+      "name": "Regime filter reaches the research model and delayed input changes discard stale results",
       "status": "passed"
     },
     {
@@ -139,7 +84,7 @@
       "status": "passed"
     },
     {
-      "name": "All seven pattern backtests and all eight timeframes",
+      "name": "All catalog indicator backtests and all eight timeframes",
       "status": "passed"
     },
     {
@@ -147,7 +92,7 @@
       "status": "passed"
     },
     {
-      "name": "Seven-strategy comparison, export, and insufficient-evidence disabled start",
+      "name": "Indicator-library comparison, export, and insufficient-evidence disabled start",
       "status": "passed"
     },
     {
@@ -191,2495 +136,3551 @@
       "status": "passed"
     }
   ],
-  "mocked_broker_browser_scenarios": [
+  "mocked_scenarios": [
     {
       "name": "Invalid broker authentication gives actionable error without a session",
       "status": "passed_mocked",
-      "duration_ms": 297
+      "duration_ms": 340
     },
     {
       "name": "Developer portal link is HTTPS and safely opens externally without network navigation",
       "status": "passed_mocked",
-      "duration_ms": 13
+      "duration_ms": 19
     },
     {
       "name": "Demo account discovery/connect clears browser credentials",
       "status": "passed_mocked",
-      "duration_ms": 743
+      "duration_ms": 1430
     },
     {
       "name": "Market refresh updates catalogue as well as balance",
       "status": "passed_mocked",
-      "duration_ms": 694
+      "duration_ms": 691
     },
     {
       "name": "No-offer market disables quoting; offered directions and all expiry choices work",
       "status": "passed_mocked",
-      "duration_ms": 1144
+      "duration_ms": 1168
     },
     {
       "name": "Changing stake or expiry invalidates a previously reviewed quote",
       "status": "passed_mocked",
-      "duration_ms": 683
+      "duration_ms": 804
     },
     {
       "name": "Manual review cancellation sends no buy; confirmed fixture order cannot replay",
       "status": "passed_mocked",
-      "duration_ms": 610
+      "duration_ms": 1025
     },
     {
       "name": "Every indicator robot strategy configures and stops without autonomous fixture fills",
       "status": "passed_mocked",
-      "duration_ms": 5920
+      "duration_ms": 7593
     },
     {
       "name": "Candle history control loads well-formed closed fixture bars",
       "status": "passed_mocked",
-      "duration_ms": 61
+      "duration_ms": 422
     },
     {
       "name": "Connected default risk form is valid and saves every configurable hard limit",
       "status": "passed_mocked",
-      "duration_ms": 1286
+      "duration_ms": 2310
     },
     {
       "name": "Synthetic calendar exception needs confirmation and persists only after approval",
       "status": "passed_mocked",
-      "duration_ms": 739
+      "duration_ms": 4067
     },
     {
       "name": "Calendar import rejects malformed JSON and accepts explicit current fixture coverage",
       "status": "passed_mocked",
-      "duration_ms": 107
+      "duration_ms": 71
     },
     {
       "name": "Connected risk refresh and audit download contain valid isolated records",
       "status": "passed_mocked",
-      "duration_ms": 1532
+      "duration_ms": 2368
     },
     {
-      "name": "Seven programmed strategies can each start and stop monitor mode",
+      "name": "Catalog indicator strategies can each start and stop monitor mode",
       "status": "passed_mocked",
-      "duration_ms": 14612
+      "duration_ms": 53450
     },
     {
       "name": "Every trading horizon starts in monitor mode with broker fixture capability",
       "status": "passed_mocked",
-      "duration_ms": 19726
+      "duration_ms": 17129
     },
     {
       "name": "Paper/demo action and expiry controls configure separately from real execution",
       "status": "passed_mocked",
-      "duration_ms": 2705
+      "duration_ms": 2551
     },
     {
       "name": "Broker-data research comparison refuses unsupported strategy promotion",
       "status": "passed_mocked",
-      "duration_ms": 8314
+      "duration_ms": 4136
     },
     {
       "name": "Connected emergency stop persists and explicit resume restarts no robot",
       "status": "passed_mocked",
-      "duration_ms": 4285
+      "duration_ms": 4277
     },
     {
       "name": "Account disconnect and real-account connection remain strictly read-only",
       "status": "passed_mocked",
-      "duration_ms": 1297
+      "duration_ms": 1218
     },
     {
       "name": "Purchase timeout durably blocks retry and survives browser/account reconnect",
       "status": "passed_mocked",
-      "duration_ms": 3140
+      "duration_ms": 3057
     }
   ],
-  "validated_offline_downloads": [
-    {
-      "control": "#page-history a[download]",
-      "filename": "mikeizu-demo-trades.csv",
-      "bytes": 118,
-      "valid": true
-    },
-    {
-      "control": "#naked-report-export",
-      "filename": "MIKEIZU_NakedForex_Research_Report.json",
-      "bytes": 21870,
-      "valid": true
-    },
-    {
-      "control": "#naked-export-all",
-      "filename": "MIKEIZU_ALL_SEVEN_STRATEGY_COMPARISON.json",
-      "bytes": 88400,
-      "valid": true
-    },
-    {
-      "control": "#audit-export",
-      "filename": "MIKEIZU_Account_Audit.json",
-      "bytes": 2940,
-      "valid": true
-    }
-  ],
-  "connected_fixture_summary": {
-    "passed": 20,
-    "failed": 0,
-    "controls": 56,
-    "evidence_entries": 59,
-    "real_broker_verified": false,
-    "orders_submitted_to_broker": 0,
-    "fixture_purchase_calls": 2
-  },
   "controls": [
     {
       "key": "a:#main-content:Skip to main content",
       "id": null,
       "tag": "a",
       "type": null,
-      "page": "global",
       "label": "Skip to main content",
-      "form": null,
       "href": "#main-content",
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "global",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Keyboard skip link",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "a:#overview:M✦MIKEIZU TRADELAB PRO",
       "id": null,
       "tag": "a",
       "type": null,
-      "page": "global",
       "label": "M✦MIKEIZU TRADELAB PRO",
-      "form": null,
       "href": "#overview",
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "global",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Quick navigation controls and brand",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "nav:overview",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "global",
       "label": "▦Overview",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "global",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All navigation buttons, deep links and reload persistence",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
-      "key": "nav:naked",
+      "key": "nav:strategies",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "global",
-      "label": "◬Naked Strategy PRO",
-      "form": null,
+      "label": "◬Strategy Research",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "global",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All navigation buttons, deep links and reload persistence",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "nav:deriv",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "global",
       "label": "◉Deriv Broker",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "global",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All navigation buttons, deep links and reload persistence",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "nav:robot",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "global",
       "label": "◈Trading Robot",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "global",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All navigation buttons, deep links and reload persistence",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "nav:backtest",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "global",
       "label": "⌁Strategy Lab",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "global",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All navigation buttons, deep links and reload persistence",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "nav:history",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "global",
       "label": "▤Trade History",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "global",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All navigation buttons, deep links and reload persistence",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "nav:risk",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "global",
       "label": "⛨Risk & Health",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "global",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All navigation buttons, deep links and reload persistence",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "nav:settings",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "global",
       "label": "⚙Data & Settings",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "global",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All navigation buttons, deep links and reload persistence",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#view-toggle",
       "id": "view-toggle",
       "tag": "button",
       "type": "button",
-      "page": "global",
       "label": "Advanced view",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "global",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Beginner and advanced views persist; disclosures open",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#global-kill",
       "id": "global-kill",
       "tag": "button",
       "type": "button",
-      "page": "global",
       "label": "■ Stop trading",
-      "form": null,
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "global",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Global emergency stop, reload, bad phrase, explicit resume",
-          "result": "tested_pass"
+          "status": "tested_pass"
         },
         {
-          "suite": "offline_browser",
           "scenario": "Money formatting and every mobile page retain stop control",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected emergency stop persists and explicit resume restarts no robot",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected emergency stop persists and explicit resume restarts no robot"
+      }
     },
     {
       "key": "#refresh-overview",
       "id": "refresh-overview",
       "tag": "button",
       "type": null,
-      "page": "page-overview",
       "label": "↻ Refresh data",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-overview",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Refresh, manual candle advance and every built-in watchlist market",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#chart-next",
       "id": "chart-next",
       "tag": "button",
       "type": null,
-      "page": "page-overview",
       "label": "+ 1 bar",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-overview",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Refresh, manual candle advance and every built-in watchlist market",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#overview-start",
       "id": "overview-start",
       "tag": "button",
       "type": null,
-      "page": "page-overview",
       "label": "▶ Start synthetic robot",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-overview",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Overview robot toggle starts and stops",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "go:robot",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "page-overview",
       "label": "Configure trading robot ↗",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-overview",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Quick navigation controls and brand",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "go:settings",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "page-overview",
       "label": "Manage →",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-overview",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Quick navigation controls and brand",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "market:EUR/USD",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "page-overview",
-      "label": "€EUR/USDEuro / US Dollar1.10434SELECTED",
-      "form": null,
+      "label": "€EUR/USDEuro / US Dollar1.1014SELECTED",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-overview",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Refresh, manual candle advance and every built-in watchlist market",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "market:GBP/USD",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "page-overview",
       "label": "£GBP/USDPound / US Dollar1.26613Select →",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-overview",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Refresh, manual candle advance and every built-in watchlist market",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "market:XAU/USD",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "page-overview",
       "label": "◈XAU/USDGold spot / USD2,650.24274Select →",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-overview",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Refresh, manual candle advance and every built-in watchlist market",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "market:BTC/USD",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "page-overview",
       "label": "₿BTC/USDBitcoin / US Dollar62,936.44665Select →",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
-      "evidence": [
-        {
-          "suite": "offline_browser",
-          "scenario": "Refresh, manual candle advance and every built-in watchlist market",
-          "result": "tested_pass"
-        }
-      ]
-    },
-    {
-      "key": "market:CUSTOM",
-      "id": null,
-      "tag": "button",
-      "type": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
       "page": "page-overview",
-      "label": "⌁CUSTOMImported OHLC history102.79Select →",
-      "form": null,
-      "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Refresh, manual candle advance and every built-in watchlist market",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "offline_browser",
-          "scenario": "Dynamically imported CSV market can be selected",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "go:history",
       "id": null,
       "tag": "button",
       "type": null,
-      "page": "page-overview",
       "label": "View all →",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-overview",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Quick navigation controls and brand",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
-      "key": "#naked-profile",
-      "id": "naked-profile",
+      "key": "#lab-profile",
+      "id": "lab-profile",
       "tag": "select",
       "type": null,
-      "page": "page-naked",
       "label": "Trading styleScalping · 1–5 minIntraday · 15 min–1 hourSwing · 4 hours–dailyLong-term · weekly–monthly",
-      "form": null,
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
-          "scenario": "All seven pattern backtests and all eight timeframes",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Every trading horizon starts in monitor mode with broker fixture capability",
-          "result": "passed_mocked"
+          "scenario": "All catalog indicator backtests and all eight timeframes",
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Every trading horizon starts in monitor mode with broker fixture capability"
+      }
     },
     {
-      "key": "#naked-strategy",
-      "id": "naked-strategy",
+      "key": "#lab-family",
+      "id": "lab-family",
       "tag": "select",
       "type": null,
-      "page": "page-naked",
-      "label": "Strategy from Naked ForexKangaroo TailBig ShadowBig BeltWammieMoolahLast KissTrendy Kangaroo",
-      "form": null,
+      "label": "Strategy familyAll familiesmean reversionmomentumtrendbreakoutvolatilitycomposite",
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
-          "scenario": "All seven pattern backtests and all eight timeframes",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Seven programmed strategies can each start and stop monitor mode",
-          "result": "passed_mocked"
+          "scenario": "Strategy family/search filters, every parameter control and default restoration",
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
-      "key": "#naked-timeframe",
-      "id": "naked-timeframe",
+      "key": "#lab-search",
+      "id": "lab-search",
+      "tag": "input",
+      "type": "search",
+      "label": "Search strategies",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Strategy family/search filters, every parameter control and default restoration",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-strategy",
+      "id": "lab-strategy",
       "tag": "select",
       "type": null,
-      "page": "page-naked",
+      "label": "Indicator strategyRSI recoveryMACD signal crossoverCCI recoveryDual SMA crossoverBollinger outer-band fadeStochastic %K recoveryDual EMA crossoverEMA trend pull",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "All catalog indicator backtests and all eight timeframes",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Catalog indicator strategies can each start and stop monitor mode"
+      }
+    },
+    {
+      "key": "summary::Strategy parameters and rule set",
+      "id": null,
+      "tag": "summary",
+      "type": null,
+      "label": "Strategy parameters and rule set",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Execution-cost disclosure toggled",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Research assumptions/provenance disclosures inspected",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-rsi_period",
+      "id": "lab-param-rsi_period",
+      "tag": "input",
+      "type": "number",
+      "label": "rsi periodWilder RSI lookback",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: RSI",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: RSI_TREND",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: STOCH_RSI",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: CONSENSUS",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Strategy family/search filters, every parameter control and default restoration",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-oversold",
+      "id": "lab-param-oversold",
+      "tag": "input",
+      "type": "number",
+      "label": "oversoldLower RSI recovery threshold",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: RSI",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: STOCHASTIC",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: STOCH_RSI",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: WILLIAMS_R",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Strategy family/search filters, every parameter control and default restoration",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-overbought",
+      "id": "lab-param-overbought",
+      "tag": "input",
+      "type": "number",
+      "label": "overboughtUpper RSI recovery threshold",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: RSI",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: STOCHASTIC",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: STOCH_RSI",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: WILLIAMS_R",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Strategy family/search filters, every parameter control and default restoration",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-reset-parameters",
+      "id": "lab-reset-parameters",
+      "tag": "button",
+      "type": "button",
+      "label": "Restore strategy defaults",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Strategy family/search filters, every parameter control and default restoration",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-timeframe",
+      "id": "lab-timeframe",
+      "tag": "select",
+      "type": null,
       "label": "Chart timeframe1 minute5 minutes",
-      "form": null,
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
-          "scenario": "All seven pattern backtests and all eight timeframes",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Every trading horizon starts in monitor mode with broker fixture capability",
-          "result": "passed_mocked"
+          "scenario": "All catalog indicator backtests and all eight timeframes",
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Every trading horizon starts in monitor mode with broker fixture capability"
+      }
     },
     {
-      "key": "#naked-source",
-      "id": "naked-source",
+      "key": "#lab-source",
+      "id": "lab-source",
       "tag": "select",
       "type": null,
-      "page": "page-naked",
       "label": "OHLC candle sourceSynthetic sampleActual Deriv historyMy local CSV",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
-          "scenario": "All seven pattern backtests and all eight timeframes",
-          "result": "tested_pass"
+          "scenario": "All catalog indicator backtests and all eight timeframes",
+          "status": "tested_pass"
         },
         {
-          "suite": "offline_browser",
           "scenario": "Research CSV validation, import, and local-source backtest",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
-      "key": "#naked-csv-input",
-      "id": "naked-csv-input",
+      "key": "#lab-csv-input",
+      "id": "lab-csv-input",
       "tag": "input",
       "type": "file",
-      "page": "page-naked",
       "label": "↥ Load historical CSV",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": true,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Research CSV validation, import, and local-source backtest",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
-      "key": "#naked-symbol",
-      "id": "naked-symbol",
+      "key": "#lab-symbol",
+      "id": "lab-symbol",
       "tag": "select",
       "type": null,
-      "page": "page-naked",
       "label": "Deriv market (for official broker data and monitoring)Connect to Deriv in the Broker tab",
-      "form": null,
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Seven programmed strategies can each start and stop monitor mode",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Catalog indicator strategies can each start and stop monitor mode"
+      }
     },
     {
-      "key": "#naked-payout",
-      "id": "naked-payout",
+      "key": "#lab-payout",
+      "id": "lab-payout",
       "tag": "input",
       "type": "number",
-      "page": "page-naked",
       "label": "Assumed payout %",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
-          "scenario": "All seven pattern backtests and all eight timeframes",
-          "result": "tested_pass"
+          "scenario": "All catalog indicator backtests and all eight timeframes",
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
-      "key": "#naked-target",
-      "id": "naked-target",
+      "key": "#lab-target",
+      "id": "lab-target",
       "tag": "input",
       "type": "number",
-      "page": "page-naked",
       "label": "Win-rate research target %",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
-          "scenario": "All seven pattern backtests and all eight timeframes",
-          "result": "tested_pass"
+          "scenario": "All catalog indicator backtests and all eight timeframes",
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
-      "key": "#naked-stake",
-      "id": "naked-stake",
+      "key": "#lab-stake",
+      "id": "lab-stake",
       "tag": "input",
       "type": "number",
-      "page": "page-naked",
-      "label": "Hypothetical stake ($)",
-      "form": null,
+      "label": "Hypothetical stake (units)",
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
-          "scenario": "All seven pattern backtests and all eight timeframes",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Paper/demo action and expiry controls configure separately from real execution",
-          "result": "passed_mocked"
+          "scenario": "All catalog indicator backtests and all eight timeframes",
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Paper/demo action and expiry controls configure separately from real execution"
+      }
     },
     {
-      "key": "#naked-expiry-bars",
-      "id": "naked-expiry-bars",
+      "key": "#lab-expiry-bars",
+      "id": "lab-expiry-bars",
       "tag": "select",
       "type": null,
-      "page": "page-naked",
       "label": "Holding period (bars)1 bar2 bars3 bars5 bars10 bars20 bars",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
-          "scenario": "All seven pattern backtests and all eight timeframes",
-          "result": "tested_pass"
+          "scenario": "All catalog indicator backtests and all eight timeframes",
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-regime-filter",
+      "id": "lab-regime-filter",
+      "tag": "input",
+      "type": "checkbox",
+      "label": "Filter historical entries by compatible market regime",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Regime filter reaches the research model and delayed input changes discard stale results",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "summary::Execution-cost assumptions",
       "id": null,
       "tag": "summary",
       "type": null,
-      "page": "page-naked",
       "label": "Execution-cost assumptions",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Execution-cost disclosure toggled",
-          "result": "tested_pass"
+          "status": "tested_pass"
         },
         {
-          "suite": "offline_browser",
           "scenario": "Research assumptions/provenance disclosures inspected",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#research-commission",
       "id": "research-commission",
       "tag": "input",
       "type": "number",
-      "page": "page-naked",
       "label": "Commission per trade",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Research cost inputs, invalid backend settings, JSON export",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#research-spread",
       "id": "research-spread",
       "tag": "input",
       "type": "number",
-      "page": "page-naked",
       "label": "Spread (basis points)",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Research cost inputs, invalid backend settings, JSON export",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#research-slippage",
       "id": "research-slippage",
       "tag": "input",
       "type": "number",
-      "page": "page-naked",
       "label": "Slippage (basis points)",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Research cost inputs, invalid backend settings, JSON export",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
-      "key": "#naked-backtest",
-      "id": "naked-backtest",
+      "key": "#lab-backtest",
+      "id": "lab-backtest",
       "tag": "button",
       "type": "button",
-      "page": "page-naked",
       "label": "⌁ Backtest selected strategy",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
-          "scenario": "All seven pattern backtests and all eight timeframes",
-          "result": "tested_pass"
+          "scenario": "All catalog indicator backtests and all eight timeframes",
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
-      "key": "#naked-action",
-      "id": "naked-action",
+      "key": "#lab-action",
+      "id": "lab-action",
       "tag": "select",
       "type": null,
-      "page": "page-naked",
       "label": "Automatic actionMonitor and record signals · no ordersAutomatic virtual positions · 0.5% risk / 2R targetBuy DEMO options on confirmed signals",
-      "form": null,
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Disconnected strategy activation rejects and no demo-mode option",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Paper/demo action and expiry controls configure separately from real execution",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Paper/demo action and expiry controls configure separately from real execution"
+      }
     },
     {
-      "key": "#naked-expiry-minutes",
-      "id": "naked-expiry-minutes",
+      "key": "#lab-expiry-minutes",
+      "id": "lab-expiry-minutes",
       "tag": "select",
       "type": null,
-      "page": "page-naked",
       "label": "Demo contract expiry in minutes1 minute2 minutes3 minutes5 minutes10 minutes15 minutes",
-      "form": null,
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Paper/demo action and expiry controls configure separately from real execution",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": true,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Paper/demo action and expiry controls configure separately from real execution"
+      }
     },
     {
-      "key": "#naked-start",
-      "id": "naked-start",
+      "key": "#lab-start",
+      "id": "lab-start",
       "tag": "button",
       "type": "button",
-      "page": "page-naked",
       "label": "▶ Start strategy automation",
-      "form": null,
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Disconnected strategy activation rejects and no demo-mode option",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Seven programmed strategies can each start and stop monitor mode",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Catalog indicator strategies can each start and stop monitor mode"
+      }
     },
     {
-      "key": "#naked-stop",
-      "id": "naked-stop",
+      "key": "#lab-stop",
+      "id": "lab-stop",
       "tag": "button",
       "type": "button",
-      "page": "page-naked",
       "label": "■ Emergency stop new signals",
-      "form": null,
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Seven programmed strategies can each start and stop monitor mode",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Catalog indicator strategies can each start and stop monitor mode"
+      }
     },
     {
-      "key": "#naked-scan-all",
-      "id": "naked-scan-all",
-      "tag": "button",
-      "type": "button",
-      "page": "page-naked",
-      "label": "⌁ Backtest all 7 strategies",
-      "form": null,
+      "key": "summary::Latest signal and decision evidence",
+      "id": null,
+      "tag": "summary",
+      "type": null,
+      "label": "Latest signal and decision evidence",
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
-          "scenario": "Seven-strategy comparison, export, and insufficient-evidence disabled start",
-          "result": "tested_pass"
+          "scenario": "Execution-cost disclosure toggled",
+          "status": "tested_pass"
         },
         {
-          "suite": "mocked_broker_browser",
-          "scenario": "Broker-data research comparison refuses unsupported strategy promotion",
-          "result": "passed_mocked"
+          "scenario": "Research assumptions/provenance disclosures inspected",
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
-      "key": "#naked-export-all",
-      "id": "naked-export-all",
+      "key": "#lab-scan-all",
+      "id": "lab-scan-all",
       "tag": "button",
       "type": "button",
-      "page": "page-naked",
+      "label": "⌁ Compare all 24 strategies",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Indicator-library comparison, export, and insufficient-evidence disabled start",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Broker-data research comparison refuses unsupported strategy promotion"
+      }
+    },
+    {
+      "key": "#lab-export-all",
+      "id": "lab-export-all",
+      "tag": "button",
+      "type": "button",
       "label": "↓ Export full comparison",
-      "form": null,
       "href": null,
+      "disabled": true,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "valid json download",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Indicator-library comparison, export, and insufficient-evidence disabled start",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
       "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
-      "evidence": [
-        {
-          "suite": "offline_browser",
-          "scenario": "valid json download",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "offline_browser",
-          "scenario": "Seven-strategy comparison, export, and insufficient-evidence disabled start",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Broker-data research comparison refuses unsupported strategy promotion",
-          "result": "passed_mocked"
-        }
-      ]
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Broker-data research comparison refuses unsupported strategy promotion"
+      }
     },
     {
-      "key": "#naked-start-best",
-      "id": "naked-start-best",
+      "key": "#lab-start-best",
+      "id": "lab-start-best",
       "tag": "button",
       "type": "button",
-      "page": "page-naked",
       "label": "▶ Use best validated strategy",
-      "form": null,
       "href": null,
-      "outcome": "safety_gate_verified_only",
-      "interpretation": "Insufficient evidence keeps activation disabled. The gate was tested; successful deployment of a validated market strategy was not demonstrated.",
+      "disabled": true,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
-          "scenario": "Seven-strategy comparison, export, and insufficient-evidence disabled start",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "No validated fixture strategy means activation stays disabled; no forged qualification or claimed successful deployment.",
-          "result": "gate_verified_mocked"
+          "scenario": "Indicator-library comparison, export, and insufficient-evidence disabled start",
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "protective_gate_verified_only",
+      "mocked_evidence": {
+        "status": "gate_verified_mocked",
+        "test": "No validated fixture strategy means activation stays disabled; no forged qualification or claimed successful deployment."
+      }
     },
     {
-      "key": "#naked-report-export",
-      "id": "naked-report-export",
+      "key": "#lab-report-export",
+      "id": "lab-report-export",
       "tag": "button",
       "type": "button",
-      "page": "page-naked",
       "label": "↓ Export report (JSON)",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": true,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "valid json download",
-          "result": "tested_pass"
+          "status": "tested_pass"
         },
         {
-          "suite": "offline_browser",
           "scenario": "Research cost inputs, invalid backend settings, JSON export",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "summary::Dataset, configuration and assumptions",
       "id": null,
       "tag": "summary",
       "type": null,
-      "page": "page-naked",
       "label": "Dataset, configuration and assumptions",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": true,
+      "form": null,
+      "page": "page-strategies",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Research assumptions/provenance disclosures inspected",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#deriv-refresh",
       "id": "deriv-refresh",
       "tag": "button",
       "type": null,
-      "page": "page-deriv",
       "label": "↻ Refresh balance & markets",
-      "form": null,
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-deriv",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Disconnected broker controls remain safe",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Purchase timeout durably blocks retry and survives browser/account reconnect",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Purchase timeout durably blocks retry and survives browser/account reconnect"
+      }
     },
     {
       "key": "#deriv-auth-form",
       "id": "deriv-auth-form",
       "tag": "form",
       "type": null,
-      "page": "page-deriv",
       "label": "Deriv App ID Personal Access Token (PAT) 1. Find my Deriv accounts Authorized accountFind accounts first 2. Connect selected account Disconnect and clear sessio",
-      "form": "deriv-auth-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Demo account discovery/connect clears browser credentials",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": "deriv-auth-form",
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Demo account discovery/connect clears browser credentials"
+      }
     },
     {
       "key": "#deriv-app-id",
       "id": "deriv-app-id",
       "tag": "input",
       "type": null,
-      "page": "page-deriv",
       "label": "Deriv App ID",
-      "form": "deriv-auth-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Invalid broker authentication gives actionable error without a session",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": "deriv-auth-form",
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Invalid broker authentication gives actionable error without a session"
+      }
     },
     {
       "key": "#deriv-pat",
       "id": "deriv-pat",
       "tag": "input",
       "type": "password",
-      "page": "page-deriv",
       "label": "Personal Access Token (PAT)",
-      "form": "deriv-auth-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Invalid broker authentication gives actionable error without a session",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": "deriv-auth-form",
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Invalid broker authentication gives actionable error without a session"
+      }
     },
     {
       "key": "#deriv-list",
       "id": "deriv-list",
       "tag": "button",
       "type": "button",
-      "page": "page-deriv",
       "label": "1. Find my Deriv accounts",
-      "form": "deriv-auth-form",
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": "deriv-auth-form",
+      "page": "page-deriv",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Disconnected broker controls remain safe",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Invalid broker authentication gives actionable error without a session",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Invalid broker authentication gives actionable error without a session"
+      }
     },
     {
       "key": "#deriv-account",
       "id": "deriv-account",
       "tag": "select",
       "type": null,
-      "page": "page-deriv",
       "label": "Authorized accountFind accounts first",
-      "form": "deriv-auth-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Account disconnect and real-account connection remain strictly read-only",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": "deriv-auth-form",
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Account disconnect and real-account connection remain strictly read-only"
+      }
     },
     {
       "key": "button:submit:2. Connect selected account",
       "id": null,
       "tag": "button",
       "type": "submit",
-      "page": "page-deriv",
       "label": "2. Connect selected account",
-      "form": "deriv-auth-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Demo account discovery/connect clears browser credentials",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": "deriv-auth-form",
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Demo account discovery/connect clears browser credentials"
+      }
     },
     {
       "key": "#deriv-disconnect",
       "id": "deriv-disconnect",
       "tag": "button",
       "type": "button",
-      "page": "page-deriv",
       "label": "Disconnect and clear session",
-      "form": "deriv-auth-form",
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": "deriv-auth-form",
+      "page": "page-deriv",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Disconnected broker controls remain safe",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Purchase timeout durably blocks retry and survives browser/account reconnect",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Purchase timeout durably blocks retry and survives browser/account reconnect"
+      }
     },
     {
       "key": "a:https://developers.deriv.com/:Deriv Developer Portal",
       "id": null,
       "tag": "a",
       "type": null,
-      "page": "page-deriv",
       "label": "Deriv Developer Portal",
-      "form": null,
       "href": "https://developers.deriv.com/",
-      "outcome": "external_link_reviewed_not_verified",
-      "interpretation": "HTTPS destination and safe external-link attributes inspected. The external developer portal was not navigated or authenticated.",
+      "disabled": false,
+      "hidden": true,
+      "form": null,
+      "page": "page-deriv",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Official HTTPS destination and safe new-tab behavior reviewed",
-          "result": "external_link_reviewed"
+          "status": "external_link_reviewed"
         },
         {
-          "suite": "offline_browser",
           "scenario": "Official developer portal destination and safe external link",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "HTTPS destination and safe target/rel inspected; external service not navigated or verified.",
-          "result": "external_link_inspected"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "external_link_reviewed",
+      "outcome": "external_link_reviewed_only",
+      "mocked_evidence": {
+        "status": "external_link_inspected",
+        "test": "HTTPS destination and safe target/rel inspected; external service not navigated or verified."
+      }
     },
     {
       "key": "#deriv-order-form",
       "id": "deriv-order-form",
       "tag": "form",
       "type": null,
-      "page": "page-deriv",
       "label": "Available Deriv marketConnect to see markets DirectionUP / CALLDOWN / PUTExpiry (minutes)1 minute2 minutes3 minutes4 minutes5 minutes6 minutes7 minutes8 minutes",
-      "form": "deriv-order-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Changing stake or expiry invalidates a previously reviewed quote",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": "deriv-order-form",
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Changing stake or expiry invalidates a previously reviewed quote"
+      }
     },
     {
       "key": "#deriv-symbol",
       "id": "deriv-symbol",
       "tag": "select",
       "type": null,
-      "page": "page-deriv",
       "label": "Available Deriv marketConnect to see markets",
-      "form": "deriv-order-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "No-offer market disables quoting; offered directions and all expiry choices work",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": "deriv-order-form",
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "No-offer market disables quoting; offered directions and all expiry choices work"
+      }
     },
     {
       "key": "#deriv-side",
       "id": "deriv-side",
       "tag": "select",
       "type": null,
-      "page": "page-deriv",
       "label": "DirectionUP / CALLDOWN / PUT",
-      "form": "deriv-order-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "No-offer market disables quoting; offered directions and all expiry choices work",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": "deriv-order-form",
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "No-offer market disables quoting; offered directions and all expiry choices work"
+      }
     },
     {
       "key": "#deriv-minutes",
       "id": "deriv-minutes",
       "tag": "select",
       "type": null,
-      "page": "page-deriv",
       "label": "Expiry (minutes)1 minute2 minutes3 minutes4 minutes5 minutes6 minutes7 minutes8 minutes9 minutes10 minutes11 minutes12 minutes13 minutes14 minutes15 minutes",
-      "form": "deriv-order-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Changing stake or expiry invalidates a previously reviewed quote",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": "deriv-order-form",
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Changing stake or expiry invalidates a previously reviewed quote"
+      }
     },
     {
       "key": "#deriv-check-durations",
       "id": "deriv-check-durations",
       "tag": "button",
       "type": "button",
-      "page": "page-deriv",
       "label": "Check supported expiries",
-      "form": "deriv-order-form",
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": "deriv-order-form",
+      "page": "page-deriv",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Disconnected broker controls remain safe",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "No-offer market disables quoting; offered directions and all expiry choices work",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "No-offer market disables quoting; offered directions and all expiry choices work"
+      }
     },
     {
       "key": "#deriv-stake",
       "id": "deriv-stake",
       "tag": "input",
       "type": "number",
-      "page": "page-deriv",
       "label": "Stake in broker currency",
-      "form": "deriv-order-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Changing stake or expiry invalidates a previously reviewed quote",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": "deriv-order-form",
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Changing stake or expiry invalidates a previously reviewed quote"
+      }
     },
     {
       "key": "button:submit:Get live broker price proposal",
       "id": null,
       "tag": "button",
       "type": "submit",
-      "page": "page-deriv",
       "label": "Get live broker price proposal",
-      "form": "deriv-order-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Changing stake or expiry invalidates a previously reviewed quote",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "deriv-order-form",
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Changing stake or expiry invalidates a previously reviewed quote"
+      }
     },
     {
       "key": "#deriv-buy",
       "id": "deriv-buy",
       "tag": "button",
       "type": null,
-      "page": "page-deriv",
       "label": "Confirm and buy with DEMO funds",
-      "form": null,
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Purchase timeout durably blocks retry and survives browser/account reconnect",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": true,
+      "form": null,
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Purchase timeout durably blocks retry and survives browser/account reconnect"
+      }
     },
     {
       "key": "#deriv-arm-phrase",
       "id": "deriv-arm-phrase",
       "tag": "input",
       "type": null,
-      "page": "page-deriv",
       "label": "",
-      "form": null,
       "href": null,
+      "disabled": true,
+      "hidden": true,
+      "form": null,
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "unsupported_disabled",
+      "reason": "Real-money activation is intentionally unavailable.",
       "outcome": "unsupported_disabled",
-      "interpretation": "Real-money execution is unavailable. Disabled arm controls were checked; no live order was attempted or certified.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Account disconnect and real-account connection remain strictly read-only",
-          "result": "passed_mocked"
-        }
-      ]
+      "mocked_evidence": {
+        "status": "blocked_by_design_verified",
+        "test": "Live execution intentionally unsupported in production."
+      }
     },
     {
       "key": "#deriv-arm",
       "id": "deriv-arm",
       "tag": "button",
       "type": "button",
-      "page": "page-deriv",
       "label": "Live execution unavailable",
-      "form": null,
       "href": null,
+      "disabled": true,
+      "hidden": true,
+      "form": null,
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "unsupported_disabled",
+      "reason": "Real-money activation is intentionally unavailable.",
       "outcome": "unsupported_disabled",
-      "interpretation": "Real-money execution is unavailable. Disabled arm controls were checked; no live order was attempted or certified.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Account disconnect and real-account connection remain strictly read-only",
-          "result": "passed_mocked"
-        }
-      ]
+      "mocked_evidence": {
+        "status": "blocked_by_design_verified",
+        "test": "Live execution intentionally unsupported in production."
+      }
     },
     {
       "key": "#deriv-strategy",
       "id": "deriv-strategy",
       "tag": "select",
       "type": null,
-      "page": "page-deriv",
-      "label": "StrategyRSISMA crossoverMACDBollingerStochasticCCI",
-      "form": null,
+      "label": "StrategyRSI recoveryMACD signal crossoverCCI recoveryDual SMA crossoverBollinger outer-band fadeStochastic %K recoveryDual EMA crossoverEMA trend pullbackTriple",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Every indicator robot strategy configures and stops without autonomous fixture fills",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Every indicator robot strategy configures and stops without autonomous fixture fills"
+      }
     },
     {
       "key": "#deriv-auto-stake",
       "id": "deriv-auto-stake",
       "tag": "input",
       "type": "number",
-      "page": "page-deriv",
       "label": "Demo robot stake ($0.35–$5)",
-      "form": null,
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Every indicator robot strategy configures and stops without autonomous fixture fills",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-deriv",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Every indicator robot strategy configures and stops without autonomous fixture fills"
+      }
     },
     {
       "key": "#deriv-auto-start",
       "id": "deriv-auto-start",
       "tag": "button",
       "type": null,
-      "page": "page-deriv",
       "label": "▶ Start broker DEMO robot",
-      "form": null,
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-deriv",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Disconnected broker controls remain safe",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Every indicator robot strategy configures and stops without autonomous fixture fills",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Every indicator robot strategy configures and stops without autonomous fixture fills"
+      }
     },
     {
       "key": "#deriv-auto-stop",
       "id": "deriv-auto-stop",
       "tag": "button",
       "type": null,
-      "page": "page-deriv",
       "label": "■ Stop broker DEMO robot",
-      "form": null,
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-deriv",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Disconnected broker controls remain safe",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Every indicator robot strategy configures and stops without autonomous fixture fills",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Every indicator robot strategy configures and stops without autonomous fixture fills"
+      }
     },
     {
       "key": "#deriv-candle-fetch",
       "id": "deriv-candle-fetch",
       "tag": "button",
       "type": null,
-      "page": "page-deriv",
       "label": "Load broker candle history",
-      "form": null,
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-deriv",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Disconnected broker controls remain safe",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Candle history control loads well-formed closed fixture bars",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Candle history control loads well-formed closed fixture bars"
+      }
     },
     {
       "key": "#robot-form",
       "id": "robot-form",
       "tag": "form",
       "type": null,
-      "page": "page-robot",
-      "label": "Market assetEUR/USDGBP/USDUSD/JPYXAU/USDBTC/USDCUSTOMTechnical indicatorRSI — Relative strengthMACD — Momentum crossoverCCI — Commodity channelSMA — Moving aver",
-      "form": "robot-form",
+      "label": "Market assetEUR/USDGBP/USDUSD/JPYXAU/USDBTC/USDTechnical indicatorRSI recoveryMACD signal crossoverCCI recoveryDual SMA crossoverBollinger outer-band fadeStocha",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "robot-form",
+      "page": "page-robot",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Synthetic robot parameters, invalid input, save and start/stop",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#robot-asset",
       "id": "robot-asset",
       "tag": "select",
       "type": null,
-      "page": "page-robot",
-      "label": "Market assetEUR/USDGBP/USDUSD/JPYXAU/USDBTC/USDCUSTOM",
-      "form": "robot-form",
+      "label": "Market assetEUR/USDGBP/USDUSD/JPYXAU/USDBTC/USD",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "robot-form",
+      "page": "page-robot",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Synthetic robot parameters, invalid input, save and start/stop",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#robot-strategy",
       "id": "robot-strategy",
       "tag": "select",
       "type": null,
-      "page": "page-robot",
-      "label": "Technical indicatorRSI — Relative strengthMACD — Momentum crossoverCCI — Commodity channelSMA — Moving average crossBollinger — Volatility bandsStochastic — Mom",
-      "form": "robot-form",
+      "label": "Technical indicatorRSI recoveryMACD signal crossoverCCI recoveryDual SMA crossoverBollinger outer-band fadeStochastic %K recoveryDual EMA crossoverEMA trend pul",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "robot-form",
+      "page": "page-robot",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Synthetic robot parameters, invalid input, save and start/stop",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#robot-stake",
       "id": "robot-stake",
       "tag": "input",
       "type": "number",
-      "page": "page-robot",
       "label": "Trade amount (USD)",
-      "form": "robot-form",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "robot-form",
+      "page": "page-robot",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Synthetic robot parameters, invalid input, save and start/stop",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#robot-duration",
       "id": "robot-duration",
       "tag": "select",
       "type": null,
-      "page": "page-robot",
       "label": "Trade duration (bars)1 bar2 bars3 bars5 bars10 bars20 bars",
-      "form": "robot-form",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "robot-form",
+      "page": "page-robot",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Synthetic robot parameters, invalid input, save and start/stop",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#robot-loss",
       "id": "robot-loss",
       "tag": "input",
       "type": "number",
-      "page": "page-robot",
       "label": "Daily stop loss (USD)",
-      "form": "robot-form",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "robot-form",
+      "page": "page-robot",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Synthetic robot parameters, invalid input, save and start/stop",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#robot-profit",
       "id": "robot-profit",
       "tag": "input",
       "type": "number",
-      "page": "page-robot",
       "label": "Daily profit target (USD)",
-      "form": "robot-form",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "robot-form",
+      "page": "page-robot",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Synthetic robot parameters, invalid input, save and start/stop",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#robot-risk",
       "id": "robot-risk",
       "tag": "input",
       "type": "number",
-      "page": "page-robot",
       "label": "Max stake (% balance)",
-      "form": "robot-form",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "robot-form",
+      "page": "page-robot",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Synthetic robot parameters, invalid input, save and start/stop",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#robot-limit",
       "id": "robot-limit",
       "tag": "input",
       "type": "number",
-      "page": "page-robot",
       "label": "Max trades per day",
-      "form": "robot-form",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "robot-form",
+      "page": "page-robot",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Synthetic robot parameters, invalid input, save and start/stop",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#robot-payout",
       "id": "robot-payout",
       "tag": "input",
       "type": "number",
-      "page": "page-robot",
       "label": "Simulated payout (%)",
-      "form": "robot-form",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "robot-form",
+      "page": "page-robot",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Synthetic robot parameters, invalid input, save and start/stop",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#save-robot",
       "id": "save-robot",
       "tag": "button",
       "type": "submit",
-      "page": "page-robot",
       "label": "Save parameters",
-      "form": "robot-form",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "robot-form",
+      "page": "page-robot",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Synthetic robot parameters, invalid input, save and start/stop",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#robot-start",
       "id": "robot-start",
       "tag": "button",
       "type": null,
-      "page": "page-robot",
       "label": "▶ Start synthetic robot",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-robot",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Synthetic robot parameters, invalid input, save and start/stop",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#robot-stop",
       "id": "robot-stop",
       "tag": "button",
       "type": null,
-      "page": "page-robot",
       "label": "■ Stop robot",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": true,
+      "hidden": false,
+      "form": null,
+      "page": "page-robot",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Synthetic robot parameters, invalid input, save and start/stop",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#backtest-form",
       "id": "backtest-form",
       "tag": "form",
       "type": null,
-      "page": "page-backtest",
-      "label": "Trading marketEUR/USDGBP/USDUSD/JPYXAU/USDBTC/USDCUSTOMTechnical strategyRSI — Relative strengthMACD — Momentum crossoverCCI — Commodity channelSMA — Moving ave",
-      "form": "backtest-form",
+      "label": "Trading marketEUR/USDGBP/USDUSD/JPYXAU/USDBTC/USDTechnical strategyRSI recoveryMACD signal crossoverCCI recoveryDual SMA crossoverBollinger outer-band fadeStoch",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "backtest-form",
+      "page": "page-backtest",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All six indicator backtests and all backtest inputs",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#test-asset",
       "id": "test-asset",
       "tag": "select",
       "type": null,
-      "page": "page-backtest",
-      "label": "Trading marketEUR/USDGBP/USDUSD/JPYXAU/USDBTC/USDCUSTOM",
-      "form": "backtest-form",
+      "label": "Trading marketEUR/USDGBP/USDUSD/JPYXAU/USDBTC/USD",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "backtest-form",
+      "page": "page-backtest",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All six indicator backtests and all backtest inputs",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#test-strategy",
       "id": "test-strategy",
       "tag": "select",
       "type": null,
-      "page": "page-backtest",
-      "label": "Technical strategyRSI — Relative strengthMACD — Momentum crossoverCCI — Commodity channelSMA — Moving average crossBollinger — Volatility bandsStochastic — Mome",
-      "form": "backtest-form",
+      "label": "Technical strategyRSI recoveryMACD signal crossoverCCI recoveryDual SMA crossoverBollinger outer-band fadeStochastic %K recoveryDual EMA crossoverEMA trend pull",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "backtest-form",
+      "page": "page-backtest",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All six indicator backtests and all backtest inputs",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#test-stake",
       "id": "test-stake",
       "tag": "input",
       "type": "number",
-      "page": "page-backtest",
       "label": "Virtual stake ($)",
-      "form": "backtest-form",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "backtest-form",
+      "page": "page-backtest",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All six indicator backtests and all backtest inputs",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#test-duration",
       "id": "test-duration",
       "tag": "select",
       "type": null,
-      "page": "page-backtest",
       "label": "Expiry bars1 bar2 bars3 bars5 bars10 bars",
-      "form": "backtest-form",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "backtest-form",
+      "page": "page-backtest",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All six indicator backtests and all backtest inputs",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "button:submit:⌁ Run historical test",
       "id": null,
       "tag": "button",
       "type": "submit",
-      "page": "page-backtest",
       "label": "⌁ Run historical test",
-      "form": "backtest-form",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "backtest-form",
+      "page": "page-backtest",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "All six indicator backtests and all backtest inputs",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "a:/api/export:↓ Export CSV",
       "id": null,
       "tag": "a",
       "type": null,
-      "page": "page-history",
       "label": "↓ Export CSV",
-      "form": null,
       "href": "/api/export",
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-history",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "valid csv download",
-          "result": "tested_pass"
+          "status": "tested_pass"
         },
         {
-          "suite": "offline_browser",
           "scenario": "Trade journal CSV export",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#risk-refresh",
       "id": "risk-refresh",
       "tag": "button",
       "type": "button",
-      "page": "page-risk",
       "label": "↻ Refresh status",
-      "form": null,
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-risk",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Risk refresh, invalid disconnected calendar, audit export",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected risk refresh and audit download contain valid isolated records",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected risk refresh and audit download contain valid isolated records"
+      }
     },
     {
       "key": "#risk-config-form",
       "id": "risk-config-form",
       "tag": "form",
       "type": null,
-      "page": "page-risk",
       "label": "Risk configuration for the connected broker accountRisk per order (%)Daily loss stop (%)Weekly loss stop (%)Account drawdown stop (%)Maximum open contractsMaxim",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected default risk form is valid and saves every configurable hard limit",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": false,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected default risk form is valid and saves every configurable hard limit"
+      }
     },
     {
       "key": "#limit-risk_per_trade_pct",
       "id": "limit-risk_per_trade_pct",
       "tag": "input",
       "type": "number",
-      "page": "page-risk",
       "label": "Risk per order (%)",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected default risk form is valid and saves every configurable hard limit",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected default risk form is valid and saves every configurable hard limit"
+      }
     },
     {
       "key": "#limit-daily_loss_pct",
       "id": "limit-daily_loss_pct",
       "tag": "input",
       "type": "number",
-      "page": "page-risk",
       "label": "Daily loss stop (%)",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected default risk form is valid and saves every configurable hard limit",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected default risk form is valid and saves every configurable hard limit"
+      }
     },
     {
       "key": "#limit-weekly_loss_pct",
       "id": "limit-weekly_loss_pct",
       "tag": "input",
       "type": "number",
-      "page": "page-risk",
       "label": "Weekly loss stop (%)",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected default risk form is valid and saves every configurable hard limit",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected default risk form is valid and saves every configurable hard limit"
+      }
     },
     {
       "key": "#limit-max_drawdown_pct",
       "id": "limit-max_drawdown_pct",
       "tag": "input",
       "type": "number",
-      "page": "page-risk",
       "label": "Account drawdown stop (%)",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected default risk form is valid and saves every configurable hard limit",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected default risk form is valid and saves every configurable hard limit"
+      }
     },
     {
       "key": "#limit-max_positions",
       "id": "limit-max_positions",
       "tag": "input",
       "type": "number",
-      "page": "page-risk",
       "label": "Maximum open contracts",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected default risk form is valid and saves every configurable hard limit",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected default risk form is valid and saves every configurable hard limit"
+      }
     },
     {
       "key": "#limit-max_trades_per_day",
       "id": "limit-max_trades_per_day",
       "tag": "input",
       "type": "number",
-      "page": "page-risk",
       "label": "Maximum new orders / day",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected default risk form is valid and saves every configurable hard limit",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected default risk form is valid and saves every configurable hard limit"
+      }
     },
     {
       "key": "#limit-max_order_size",
       "id": "limit-max_order_size",
       "tag": "input",
       "type": "number",
-      "page": "page-risk",
       "label": "Maximum stake (account currency)",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected default risk form is valid and saves every configurable hard limit",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected default risk form is valid and saves every configurable hard limit"
+      }
     },
     {
       "key": "#limit-max_asset_exposure_pct",
       "id": "limit-max_asset_exposure_pct",
       "tag": "input",
       "type": "number",
-      "page": "page-risk",
       "label": "Maximum asset exposure (%)",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected default risk form is valid and saves every configurable hard limit",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected default risk form is valid and saves every configurable hard limit"
+      }
     },
     {
       "key": "#limit-max_group_exposure_pct",
       "id": "limit-max_group_exposure_pct",
       "tag": "input",
       "type": "number",
-      "page": "page-risk",
       "label": "Maximum correlated-group exposure (%)",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected default risk form is valid and saves every configurable hard limit",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected default risk form is valid and saves every configurable hard limit"
+      }
     },
     {
       "key": "#limit-consecutive_loss_limit",
       "id": "limit-consecutive_loss_limit",
       "tag": "input",
       "type": "number",
-      "page": "page-risk",
       "label": "Consecutive losses before cooldown",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected default risk form is valid and saves every configurable hard limit",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected default risk form is valid and saves every configurable hard limit"
+      }
     },
     {
       "key": "#limit-cooldown_minutes",
       "id": "limit-cooldown_minutes",
       "tag": "input",
       "type": "number",
-      "page": "page-risk",
       "label": "Loss cooldown (minutes)",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected default risk form is valid and saves every configurable hard limit",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected default risk form is valid and saves every configurable hard limit"
+      }
     },
     {
       "key": "#limit-calendar_policy",
       "id": "limit-calendar_policy",
       "tag": "select",
       "type": null,
-      "page": "page-risk",
       "label": "Economic-calendar policyRequire fresh calendar for ordersExplicit synthetic-market exception",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Synthetic calendar exception needs confirmation and persists only after approval",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Synthetic calendar exception needs confirmation and persists only after approval"
+      }
     },
     {
       "key": "button:submit:Save account risk limits",
       "id": null,
       "tag": "button",
       "type": "submit",
-      "page": "page-risk",
       "label": "Save account risk limits",
-      "form": "risk-config-form",
       "href": null,
-      "outcome": "mocked_verified",
-      "interpretation": "Connected behavior passed against fictional broker data through actual local HTTP handlers; no broker connection or order.",
-      "evidence": [
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected default risk form is valid and saves every configurable hard limit",
-          "result": "passed_mocked"
-        }
-      ]
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-config-form",
+      "page": "page-risk",
+      "evidence": [],
+      "status": "delegated_connected",
+      "reason": "Connected positive path is exercised separately with deterministic fake broker, never claimed as authenticated broker evidence.",
+      "outcome": "mocked_integration_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected default risk form is valid and saves every configurable hard limit"
+      }
     },
     {
       "key": "summary::Import a licensed economic-calendar snapshot",
       "id": null,
       "tag": "summary",
       "type": null,
-      "page": "page-risk",
       "label": "Import a licensed economic-calendar snapshot",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-risk",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Beginner and advanced views persist; disclosures open",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#risk-calendar-file",
       "id": "risk-calendar-file",
       "tag": "input",
       "type": "file",
-      "page": "page-risk",
       "label": "Choose calendar JSON",
-      "form": null,
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-risk",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Risk refresh, invalid disconnected calendar, audit export",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Calendar import rejects malformed JSON and accepts explicit current fixture coverage",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Calendar import rejects malformed JSON and accepts explicit current fixture coverage"
+      }
     },
     {
       "key": "#risk-resume-form",
       "id": "risk-resume-form",
       "tag": "form",
       "type": null,
-      "page": "page-risk",
       "label": "Type RESUME DEMO TRADINGResume demo order permission",
-      "form": "risk-resume-form",
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": "risk-resume-form",
+      "page": "page-risk",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Global emergency stop, reload, bad phrase, explicit resume",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#risk-resume-phrase",
       "id": "risk-resume-phrase",
       "tag": "input",
       "type": null,
-      "page": "page-risk",
       "label": "Type RESUME DEMO TRADING",
-      "form": "risk-resume-form",
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": "risk-resume-form",
+      "page": "page-risk",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Global emergency stop, reload, bad phrase, explicit resume",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected emergency stop persists and explicit resume restarts no robot",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected emergency stop persists and explicit resume restarts no robot"
+      }
     },
     {
       "key": "#risk-resume",
       "id": "risk-resume",
       "tag": "button",
       "type": "submit",
-      "page": "page-risk",
       "label": "Resume demo order permission",
-      "form": "risk-resume-form",
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": true,
+      "hidden": false,
+      "form": "risk-resume-form",
+      "page": "page-risk",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Global emergency stop, reload, bad phrase, explicit resume",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected emergency stop persists and explicit resume restarts no robot",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected emergency stop persists and explicit resume restarts no robot"
+      }
     },
     {
       "key": "summary::Operational details",
       "id": null,
       "tag": "summary",
       "type": null,
-      "page": "page-risk",
       "label": "Operational details",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-risk",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Beginner and advanced views persist; disclosures open",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#audit-export",
       "id": "audit-export",
       "tag": "button",
       "type": "button",
-      "page": "page-risk",
       "label": "↓ Export audit JSON",
-      "form": null,
       "href": null,
-      "outcome": "local_and_mocked_verified",
-      "interpretation": "Offline/local behavior passed. Connected behavior also passed against the deterministic broker fixture, not a real broker.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-risk",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "valid json download",
-          "result": "tested_pass"
+          "status": "tested_pass"
         },
         {
-          "suite": "offline_browser",
           "scenario": "Risk refresh, invalid disconnected calendar, audit export",
-          "result": "tested_pass"
-        },
-        {
-          "suite": "mocked_broker_browser",
-          "scenario": "Connected risk refresh and audit download contain valid isolated records",
-          "result": "passed_mocked"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_and_mocked_verified",
+      "mocked_evidence": {
+        "status": "passed_mocked",
+        "test": "Connected risk refresh and audit download contain valid isolated records"
+      }
     },
     {
       "key": "#csv-upload",
       "id": "csv-upload",
       "tag": "input",
       "type": "file",
-      "page": "page-settings",
       "label": "Choose a .csv file",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": true,
+      "form": null,
+      "page": "page-settings",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Simulator CSV valid/invalid import, backtest-only history, reset cancel/confirm",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     },
     {
       "key": "#reset-demo",
       "id": "reset-demo",
       "tag": "button",
       "type": null,
-      "page": "page-settings",
       "label": "Reset demo account",
-      "form": null,
       "href": null,
-      "outcome": "local_verified",
-      "interpretation": "Offline/local behavior passed.",
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-settings",
       "evidence": [
         {
-          "suite": "offline_browser",
           "scenario": "Simulator CSV valid/invalid import, backtest-only history, reset cancel/confirm",
-          "result": "tested_pass"
+          "status": "tested_pass"
         }
-      ]
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-macd_fast",
+      "id": "lab-param-macd_fast",
+      "tag": "input",
+      "type": "number",
+      "label": "macd fastMACD fast EMA period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: MACD",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-macd_slow",
+      "id": "lab-param-macd_slow",
+      "tag": "input",
+      "type": "number",
+      "label": "macd slowMACD slow EMA period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: MACD",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-macd_signal_period",
+      "id": "lab-param-macd_signal_period",
+      "tag": "input",
+      "type": "number",
+      "label": "macd signal periodMACD signal EMA period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: MACD",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-cci_period",
+      "id": "lab-param-cci_period",
+      "tag": "input",
+      "type": "number",
+      "label": "cci periodCCI typical-price lookback",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: CCI",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-cci_level",
+      "id": "lab-param-cci_level",
+      "tag": "input",
+      "type": "number",
+      "label": "cci levelSymmetric CCI extreme level",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: CCI",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-sma_fast_period",
+      "id": "lab-param-sma_fast_period",
+      "tag": "input",
+      "type": "number",
+      "label": "sma fast periodFast SMA period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: SMA",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-sma_slow_period",
+      "id": "lab-param-sma_slow_period",
+      "tag": "input",
+      "type": "number",
+      "label": "sma slow periodSlow SMA period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: SMA",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-bb_period",
+      "id": "lab-param-bb_period",
+      "tag": "input",
+      "type": "number",
+      "label": "bb periodBollinger close-price lookback",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: BOLLINGER",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: BOLLINGER_REENTRY",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: BOLLINGER_SQUEEZE",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-bb_deviations",
+      "id": "lab-param-bb_deviations",
+      "tag": "input",
+      "type": "number",
+      "label": "bb deviationsPopulation standard-deviation band multiplier",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: BOLLINGER",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: BOLLINGER_REENTRY",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: BOLLINGER_SQUEEZE",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-stoch_period",
+      "id": "lab-param-stoch_period",
+      "tag": "input",
+      "type": "number",
+      "label": "stoch periodRaw stochastic %K lookback",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: STOCHASTIC",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-ema_fast_period",
+      "id": "lab-param-ema_fast_period",
+      "tag": "input",
+      "type": "number",
+      "label": "ema fast periodFast EMA period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: EMA_CROSS",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: EMA_PULLBACK",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: TRIPLE_EMA",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-ema_slow_period",
+      "id": "lab-param-ema_slow_period",
+      "tag": "input",
+      "type": "number",
+      "label": "ema slow periodSlow EMA period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: EMA_CROSS",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: TRIPLE_EMA",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-trend_period",
+      "id": "lab-param-trend_period",
+      "tag": "input",
+      "type": "number",
+      "label": "trend periodTrend-filter EMA period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: EMA_PULLBACK",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: RSI_TREND",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: CONSENSUS",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-ema_mid_period",
+      "id": "lab-param-ema_mid_period",
+      "tag": "input",
+      "type": "number",
+      "label": "ema mid periodMiddle EMA period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: TRIPLE_EMA",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-rsi_midpoint",
+      "id": "lab-param-rsi_midpoint",
+      "tag": "input",
+      "type": "number",
+      "label": "rsi midpointRSI trend threshold",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: RSI_TREND",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-stoch_rsi_period",
+      "id": "lab-param-stoch_rsi_period",
+      "tag": "input",
+      "type": "number",
+      "label": "stoch rsi periodStochastic normalization of RSI",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: STOCH_RSI",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-williams_period",
+      "id": "lab-param-williams_period",
+      "tag": "input",
+      "type": "number",
+      "label": "williams periodWilliams %R lookback",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: WILLIAMS_R",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-recovery_window",
+      "id": "lab-param-recovery_window",
+      "tag": "input",
+      "type": "number",
+      "label": "recovery windowRecent bars allowed for extreme-to-midpoint confirmation",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: WILLIAMS_R",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-roc_period",
+      "id": "lab-param-roc_period",
+      "tag": "input",
+      "type": "number",
+      "label": "roc periodPercentage rate-of-change lookback",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: ROC",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-roc_threshold",
+      "id": "lab-param-roc_threshold",
+      "tag": "input",
+      "type": "number",
+      "label": "roc thresholdSymmetric percentage ROC threshold",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: ROC",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-momentum_period",
+      "id": "lab-param-momentum_period",
+      "tag": "input",
+      "type": "number",
+      "label": "momentum periodPrice momentum lookback",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: MOMENTUM",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-accel_period",
+      "id": "lab-param-accel_period",
+      "tag": "input",
+      "type": "number",
+      "label": "accel periodLag used to measure momentum acceleration",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: MOMENTUM",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-adx_period",
+      "id": "lab-param-adx_period",
+      "tag": "input",
+      "type": "number",
+      "label": "adx periodWilder DMI and ADX period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: ADX_DMI",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-adx_min",
+      "id": "lab-param-adx_min",
+      "tag": "input",
+      "type": "number",
+      "label": "adx minMinimum ADX trend-strength threshold",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: ADX_DMI",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-channel_period",
+      "id": "lab-param-channel_period",
+      "tag": "input",
+      "type": "number",
+      "label": "channel periodPrior-bar Donchian channel lookback",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: DONCHIAN",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: CONSENSUS",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-atr_period",
+      "id": "lab-param-atr_period",
+      "tag": "input",
+      "type": "number",
+      "label": "atr periodWilder true-range averaging period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: ATR_BREAKOUT",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: KELTNER",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: SUPERTREND",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-atr_multiple",
+      "id": "lab-param-atr_multiple",
+      "tag": "input",
+      "type": "number",
+      "label": "atr multipleATR threshold or trailing-band multiplier",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: ATR_BREAKOUT",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: KELTNER",
+          "status": "tested_pass"
+        },
+        {
+          "scenario": "Catalog bounds and defaults tested: SUPERTREND",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-keltner_period",
+      "id": "lab-param-keltner_period",
+      "tag": "input",
+      "type": "number",
+      "label": "keltner periodKeltner EMA middle period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: KELTNER",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-squeeze_width_pct",
+      "id": "lab-param-squeeze_width_pct",
+      "tag": "input",
+      "type": "number",
+      "label": "squeeze width pctMaximum prior band width as percent of middle",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: BOLLINGER_SQUEEZE",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-tenkan_period",
+      "id": "lab-param-tenkan_period",
+      "tag": "input",
+      "type": "number",
+      "label": "tenkan periodIchimoku conversion midpoint period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: ICHIMOKU",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-kijun_period",
+      "id": "lab-param-kijun_period",
+      "tag": "input",
+      "type": "number",
+      "label": "kijun periodIchimoku baseline midpoint period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: ICHIMOKU",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-senkou_period",
+      "id": "lab-param-senkou_period",
+      "tag": "input",
+      "type": "number",
+      "label": "senkou periodIchimoku span B midpoint period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: ICHIMOKU",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-cloud_displacement",
+      "id": "lab-param-cloud_displacement",
+      "tag": "input",
+      "type": "number",
+      "label": "cloud displacementPast computed spans used for today's displayed cloud",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: ICHIMOKU",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-aroon_period",
+      "id": "lab-param-aroon_period",
+      "tag": "input",
+      "type": "number",
+      "label": "aroon periodAroon high/low age period",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: AROON",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-aroon_min",
+      "id": "lab-param-aroon_min",
+      "tag": "input",
+      "type": "number",
+      "label": "aroon minMinimum winning Aroon value",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: AROON",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "#lab-param-consensus_votes",
+      "id": "lab-param-consensus_votes",
+      "tag": "input",
+      "type": "number",
+      "label": "consensus votesRequired agreeing rule votes, not confidence",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-strategies",
+      "evidence": [
+        {
+          "scenario": "Catalog bounds and defaults tested: CONSENSUS",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
+    },
+    {
+      "key": "market:CUSTOM",
+      "id": null,
+      "tag": "button",
+      "type": null,
+      "label": "⌁CUSTOMImported OHLC history102.79Select →",
+      "href": null,
+      "disabled": false,
+      "hidden": false,
+      "form": null,
+      "page": "page-overview",
+      "discovered_during": "dynamic final DOM",
+      "evidence": [
+        {
+          "scenario": "Dynamically imported CSV market can be selected",
+          "status": "tested_pass"
+        }
+      ],
+      "status": "tested_pass",
+      "outcome": "local_verified"
     }
   ],
-  "application_functions": {
+  "functions": {
     "deriv_bridge.py": {
-      "sha256": "2cf3021ef4c10536fd29db004c896f2941c266648819ebe3de7d8b7eab3b3e7c",
-      "callable_count": 44,
-      "callables": [
+      "sha256": "467a2328631708810840bcc7a44d1281ad73457200f0eff6bf9387528d3a8ae8",
+      "declared_callables": [
         {
           "name": "_NoCredentialRedirect.redirect_request",
           "line": 26
@@ -2867,7 +3868,7 @@
         "percent_statements_covered": 88.81987577639751,
         "percent_statements_covered_display": "89"
       },
-      "missing_statement_lines": [
+      "missing_lines": [
         33,
         63,
         66,
@@ -2943,216 +3944,222 @@
       ]
     },
     "deriv_server.py": {
-      "sha256": "51611f253ffb0488557e1897b5e710702f7f934ed0e30a6dbc77bda66f95ffa7",
-      "callable_count": 23,
-      "callables": [
+      "sha256": "635d7016edda1e313c583d062d40de7dbcbe68816e6eb58ea2f7b5bd1e6c955e",
+      "declared_callables": [
+        {
+          "name": "migrate_strategy_state",
+          "line": 37
+        },
         {
           "name": "Journal.__init__",
-          "line": 35
+          "line": 67
         },
         {
           "name": "Journal.db",
-          "line": 73
+          "line": 105
         },
         {
           "name": "Journal.reserve",
-          "line": 88
+          "line": 120
         },
         {
           "name": "Journal.update",
-          "line": 118
+          "line": 150
         },
         {
           "name": "Journal._require_integrity",
-          "line": 143
+          "line": 175
         },
         {
           "name": "Journal._audit",
-          "line": 160
-        },
-        {
-          "name": "Journal.audit",
-          "line": 170
-        },
-        {
-          "name": "Journal.history",
           "line": 192
         },
         {
+          "name": "Journal.audit",
+          "line": 202
+        },
+        {
+          "name": "Journal.history",
+          "line": 224
+        },
+        {
           "name": "Journal.orders",
-          "line": 196
+          "line": 228
         },
         {
           "name": "Journal.unresolved",
-          "line": 201
+          "line": 233
         },
         {
           "name": "Journal.today",
-          "line": 205
+          "line": 237
         },
         {
           "name": "entry_guard",
-          "line": 218
+          "line": 251
         },
         {
           "name": "risk_status",
-          "line": 226
+          "line": 259
         },
         {
           "name": "emergency_stop",
-          "line": 238
+          "line": 271
         },
         {
           "name": "capabilities",
-          "line": 255
+          "line": 288
         },
         {
           "name": "API.check_host",
-          "line": 274
+          "line": 308
         },
         {
           "name": "API.check_origin",
-          "line": 283
+          "line": 317
         },
         {
           "name": "API.do_strategy_POST",
-          "line": 291
+          "line": 325
         },
         {
           "name": "API.do_GET",
-          "line": 310
+          "line": 344
         },
         {
           "name": "API.do_POST",
-          "line": 339
+          "line": 374
         },
         {
           "name": "API.do_risk_POST",
-          "line": 408
+          "line": 443
         },
         {
           "name": "auto_loop",
-          "line": 446
+          "line": 481
         },
         {
           "name": "main",
-          "line": 486
+          "line": 528
         }
       ],
       "coverage": {
-        "covered_lines": 303,
-        "num_statements": 400,
-        "percent_covered": 75.75,
-        "percent_covered_display": "76",
-        "missing_lines": 97,
+        "covered_lines": 331,
+        "num_statements": 432,
+        "percent_covered": 76.62037037037037,
+        "percent_covered_display": "77",
+        "missing_lines": 101,
         "excluded_lines": 0,
-        "percent_statements_covered": 75.75,
-        "percent_statements_covered_display": "76"
+        "percent_statements_covered": 76.62037037037037,
+        "percent_statements_covered_display": "77"
       },
-      "missing_statement_lines": [
-        94,
-        98,
-        102,
-        127,
-        129,
-        131,
-        180,
-        181,
-        183,
-        296,
-        298,
-        299,
-        300,
-        301,
-        302,
-        303,
-        304,
-        307,
-        308,
+      "missing_lines": [
+        57,
+        60,
+        126,
+        130,
+        134,
+        159,
+        161,
+        163,
+        212,
+        213,
+        215,
+        330,
         332,
         333,
         334,
         335,
         336,
         337,
-        352,
-        356,
-        360,
-        361,
-        362,
-        363,
-        364,
-        365,
+        338,
+        341,
+        342,
         366,
-        367,
         368,
         369,
         370,
         371,
         372,
-        373,
-        374,
-        375,
-        376,
-        377,
-        378,
-        379,
-        380,
-        381,
-        382,
-        383,
-        384,
-        385,
-        386,
         387,
-        388,
-        389,
-        390,
         391,
-        392,
-        393,
-        394,
         395,
         396,
+        397,
         398,
         399,
         400,
         401,
+        402,
+        403,
         404,
+        405,
         406,
+        407,
+        408,
+        409,
+        410,
+        411,
+        412,
+        413,
+        414,
+        415,
+        416,
+        417,
+        418,
+        419,
+        420,
+        421,
+        422,
+        423,
+        424,
+        425,
         426,
         427,
+        428,
+        429,
+        430,
         431,
-        438,
-        442,
-        443,
-        475,
+        433,
+        434,
+        435,
+        436,
+        439,
+        441,
+        461,
+        462,
+        466,
+        473,
         477,
-        487,
-        488,
-        489,
-        490,
-        491,
-        492,
-        493,
-        494,
+        478,
         495,
         496,
-        497,
-        498,
-        499,
-        500,
-        501,
-        502,
-        503,
-        505,
-        506
+        517,
+        519,
+        529,
+        530,
+        531,
+        532,
+        533,
+        534,
+        535,
+        536,
+        537,
+        538,
+        539,
+        540,
+        541,
+        542,
+        543,
+        544,
+        545,
+        547,
+        548
       ]
     },
     "engine.py": {
-      "sha256": "9ef451d07c9d64f95097aff38b06b11e90cd595a921d86c795b838056996a0d4",
-      "callable_count": 8,
-      "callables": [
+      "sha256": "a325b43b8739e81be4c549b341c8259c650c80348ac63506f5322cd56e01a9e7",
+      "declared_callables": [
         {
           "name": "_period",
           "line": 10
@@ -3174,177 +4181,164 @@
           "line": 51
         },
         {
-          "name": "indicators",
+          "name": "_wilder",
           "line": 67
         },
         {
+          "name": "_rolling_mid",
+          "line": 80
+        },
+        {
+          "name": "_dmi",
+          "line": 84
+        },
+        {
+          "name": "_supertrend",
+          "line": 100
+        },
+        {
+          "name": "indicators",
+          "line": 120
+        },
+        {
           "name": "signal_at",
-          "line": 101
+          "line": 210
         },
         {
           "name": "backtest",
-          "line": 154
+          "line": 215
         }
       ],
       "coverage": {
-        "covered_lines": 165,
-        "num_statements": 170,
-        "percent_covered": 97.05882352941177,
-        "percent_covered_display": "97",
-        "missing_lines": 5,
-        "excluded_lines": 0,
-        "percent_statements_covered": 97.05882352941177,
-        "percent_statements_covered_display": "97"
-      },
-      "missing_statement_lines": [
-        18,
-        25,
-        150,
-        176,
-        178
-      ]
-    },
-    "market_regime.py": {
-      "sha256": "f929bfa6ecd98720de08dad1807a92fc030b2d194e51b970924bd1648d647249",
-      "callable_count": 2,
-      "callables": [
-        {
-          "name": "_result",
-          "line": 25
-        },
-        {
-          "name": "classify_regime",
-          "line": 39
-        }
-      ],
-      "coverage": {
-        "covered_lines": 84,
-        "num_statements": 86,
-        "percent_covered": 97.67441860465117,
+        "covered_lines": 204,
+        "num_statements": 208,
+        "percent_covered": 98.07692307692308,
         "percent_covered_display": "98",
-        "missing_lines": 2,
+        "missing_lines": 4,
         "excluded_lines": 0,
-        "percent_statements_covered": 97.67441860465117,
+        "percent_statements_covered": 98.07692307692308,
         "percent_statements_covered_display": "98"
       },
-      "missing_statement_lines": [
-        60,
-        75
+      "missing_lines": [
+        18,
+        25,
+        238,
+        240
       ]
     },
-    "naked_strategies.py": {
-      "sha256": "391fcf24d298a63555fa0cd4aa2534d3b768fa1a476de8c52fa5a8aa79560cd6",
-      "callable_count": 19,
-      "callables": [
+    "indicator_strategies.py": {
+      "sha256": "f6e894200221d0ecc2af10f3ce2a6c2614d51f9af7fded1ad4e4d4e995620212",
+      "declared_callables": [
         {
-          "name": "candles_valid",
-          "line": 42
+          "name": "_p",
+          "line": 17
         },
         {
-          "name": "resample",
-          "line": 64
-        },
-        {
-          "name": "sample_candles",
-          "line": 95
-        },
-        {
-          "name": "_range",
-          "line": 129
-        },
-        {
-          "name": "_body",
-          "line": 130
-        },
-        {
-          "name": "_bottom",
-          "line": 131
-        },
-        {
-          "name": "_top",
-          "line": 132
-        },
-        {
-          "name": "_near",
-          "line": 133
-        },
-        {
-          "name": "zone_levels",
-          "line": 135
-        },
-        {
-          "name": "_matching_zone",
-          "line": 162
-        },
-        {
-          "name": "_signal",
-          "line": 167
+          "name": "_entry",
+          "line": 56
         },
         {
           "name": "validate_parameters",
-          "line": 185
+          "line": 109
         },
         {
-          "name": "detect",
-          "line": 207
+          "name": "warmup_bars",
+          "line": 137
         },
         {
-          "name": "confirmed_signal",
-          "line": 295
-        },
-        {
-          "name": "_metric",
-          "line": 318
-        },
-        {
-          "name": "_bar_end",
-          "line": 323
-        },
-        {
-          "name": "_simulate_partition",
-          "line": 330
-        },
-        {
-          "name": "_walk_forward",
-          "line": 386
-        },
-        {
-          "name": "backtest",
-          "line": 414
+          "name": "evaluate_signal",
+          "line": 148
         }
       ],
       "coverage": {
-        "covered_lines": 333,
-        "num_statements": 348,
-        "percent_covered": 95.6896551724138,
-        "percent_covered_display": "96",
-        "missing_lines": 15,
+        "covered_lines": 172,
+        "num_statements": 178,
+        "percent_covered": 96.62921348314607,
+        "percent_covered_display": "97",
+        "missing_lines": 6,
         "excluded_lines": 0,
-        "percent_statements_covered": 95.6896551724138,
-        "percent_statements_covered_display": "96"
+        "percent_statements_covered": 96.62921348314607,
+        "percent_statements_covered_display": "97"
       },
-      "missing_statement_lines": [
-        98,
-        100,
-        187,
-        197,
-        201,
-        215,
-        227,
-        229,
-        289,
-        291,
-        320,
-        361,
-        434,
-        435,
-        441
+      "missing_lines": [
+        133,
+        160,
+        161,
+        171,
+        173,
+        174
+      ]
+    },
+    "market_data.py": {
+      "sha256": "dfe38cdab25008237521facb07b5b823734a4275f74e9456c28658d2aa9d65c4",
+      "declared_callables": [
+        {
+          "name": "candles_valid",
+          "line": 27
+        },
+        {
+          "name": "resample",
+          "line": 49
+        },
+        {
+          "name": "sample_candles",
+          "line": 79
+        },
+        {
+          "name": "bar_end",
+          "line": 113
+        }
+      ],
+      "coverage": {
+        "covered_lines": 83,
+        "num_statements": 86,
+        "percent_covered": 96.51162790697674,
+        "percent_covered_display": "97",
+        "missing_lines": 3,
+        "excluded_lines": 0,
+        "percent_statements_covered": 96.51162790697674,
+        "percent_statements_covered_display": "97"
+      },
+      "missing_lines": [
+        44,
+        82,
+        84
+      ]
+    },
+    "market_regime.py": {
+      "sha256": "dc423b06e8cb094aba91f67149271d42209cdedf9c89129e599499f7e18e592c",
+      "declared_callables": [
+        {
+          "name": "_eligible",
+          "line": 24
+        },
+        {
+          "name": "_result",
+          "line": 31
+        },
+        {
+          "name": "classify_regime",
+          "line": 47
+        }
+      ],
+      "coverage": {
+        "covered_lines": 87,
+        "num_statements": 89,
+        "percent_covered": 97.75280898876404,
+        "percent_covered_display": "98",
+        "missing_lines": 2,
+        "excluded_lines": 0,
+        "percent_statements_covered": 97.75280898876404,
+        "percent_statements_covered_display": "98"
+      },
+      "missing_lines": [
+        68,
+        83
       ]
     },
     "paper_engine.py": {
       "sha256": "5f9792b0b63153598bfbcffeb1af6b5911019a085a184bbe2eed7354563ca7e6",
-      "callable_count": 15,
-      "callables": [
+      "declared_callables": [
         {
           "name": "number",
           "line": 20
@@ -3407,37 +4401,27 @@
         }
       ],
       "coverage": {
-        "covered_lines": 185,
+        "covered_lines": 194,
         "num_statements": 200,
-        "percent_covered": 92.5,
-        "percent_covered_display": "92",
-        "missing_lines": 15,
+        "percent_covered": 97.0,
+        "percent_covered_display": "97",
+        "missing_lines": 6,
         "excluded_lines": 0,
-        "percent_statements_covered": 92.5,
-        "percent_statements_covered_display": "92"
+        "percent_statements_covered": 97.0,
+        "percent_statements_covered_display": "97"
       },
-      "missing_statement_lines": [
-        45,
-        55,
+      "missing_lines": [
+        44,
+        48,
         60,
-        61,
-        62,
-        63,
-        73,
-        177,
-        194,
-        195,
-        220,
-        221,
-        222,
-        223,
-        224
+        182,
+        199,
+        200
       ]
     },
     "research_analytics.py": {
-      "sha256": "99eb7cebb5bb423c26f8bb245b3d237d163161452895c5c7375cf337958c0366",
-      "callable_count": 3,
-      "callables": [
+      "sha256": "8fd51ead25f5b80569c8b8e18568ed78372fac7f071312c0e0e04dfcfc87eb4a",
+      "declared_callables": [
         {
           "name": "wilson_interval",
           "line": 16
@@ -3461,7 +4445,7 @@
         "percent_statements_covered": 94.31818181818181,
         "percent_statements_covered_display": "94"
       },
-      "missing_statement_lines": [
+      "missing_lines": [
         20,
         34,
         41,
@@ -3471,8 +4455,7 @@
     },
     "risk_engine.py": {
       "sha256": "5e43d33cabf6190fa9ee7f4dcc5591d9bc3b32b3657a3387874dbbf211e68f29",
-      "callable_count": 35,
-      "callables": [
+      "declared_callables": [
         {
           "name": "_number",
           "line": 59
@@ -3624,7 +4607,7 @@
         "percent_statements_covered": 93.59861591695501,
         "percent_statements_covered_display": "94"
       },
-      "missing_statement_lines": [
+      "missing_lines": [
         73,
         75,
         154,
@@ -3665,122 +4648,119 @@
       ]
     },
     "server.py": {
-      "sha256": "c88e200953e82a4a78ef0d5390bf3489cd473c112b654e7a3941112d9cc009db",
-      "callable_count": 20,
-      "callables": [
+      "sha256": "44ea9d2b007082520243184d0ea7d6a224c2a2e6456f6180d8419622eea3ea62",
+      "declared_callables": [
         {
           "name": "reject_json_constant",
-          "line": 33
+          "line": 34
         },
         {
           "name": "conn",
-          "line": 38
+          "line": 39
         },
         {
           "name": "db_initialize",
-          "line": 52
+          "line": 53
         },
         {
           "name": "get_settings",
-          "line": 89
+          "line": 90
         },
         {
           "name": "set_settings",
-          "line": 93
+          "line": 94
         },
         {
           "name": "candles_for",
-          "line": 97
+          "line": 98
         },
         {
           "name": "today_stats",
-          "line": 101
+          "line": 102
         },
         {
           "name": "market_advance",
-          "line": 112
+          "line": 113
         },
         {
           "name": "market_loop",
-          "line": 174
+          "line": 176
         },
         {
           "name": "normalize_update",
-          "line": 183
+          "line": 185
         },
         {
           "name": "import_csv",
-          "line": 211
+          "line": 213
         },
         {
           "name": "API.end_headers",
-          "line": 267
+          "line": 269
         },
         {
           "name": "API.log_message",
-          "line": 273
-        },
-        {
-          "name": "API.send_json",
           "line": 275
         },
         {
+          "name": "API.send_json",
+          "line": 277
+        },
+        {
           "name": "API.error_json",
-          "line": 280
+          "line": 282
         },
         {
           "name": "API.do_GET",
-          "line": 281
+          "line": 283
         },
         {
           "name": "API.export_trades",
-          "line": 306
+          "line": 308
         },
         {
           "name": "API.serve_static",
-          "line": 316
+          "line": 318
         },
         {
           "name": "API.do_POST",
-          "line": 325
+          "line": 327
         },
         {
           "name": "main",
-          "line": 393
+          "line": 395
         }
       ],
       "coverage": {
-        "covered_lines": 248,
-        "num_statements": 349,
-        "percent_covered": 71.06017191977077,
+        "covered_lines": 250,
+        "num_statements": 351,
+        "percent_covered": 71.22507122507122,
         "percent_covered_display": "71",
         "missing_lines": 101,
         "excluded_lines": 0,
-        "percent_statements_covered": 71.06017191977077,
+        "percent_statements_covered": 71.22507122507122,
         "percent_statements_covered_display": "71"
       },
-      "missing_statement_lines": [
-        124,
-        134,
-        136,
-        138,
-        176,
-        177,
+      "missing_lines": [
+        125,
+        135,
+        137,
+        139,
         178,
         179,
         180,
-        198,
+        181,
+        182,
         200,
-        207,
-        208,
-        214,
-        220,
-        239,
-        240,
+        202,
+        209,
+        210,
+        216,
+        222,
         241,
         242,
-        282,
-        283,
+        243,
+        244,
         284,
         285,
         286,
@@ -3793,14 +4773,14 @@
         293,
         294,
         295,
-        300,
-        301,
+        296,
+        297,
         302,
         303,
         304,
         305,
+        306,
         307,
-        308,
         309,
         310,
         311,
@@ -3808,35 +4788,35 @@
         313,
         314,
         315,
+        316,
         317,
-        318,
         319,
         320,
         321,
         322,
         323,
         324,
-        333,
-        334,
-        344,
-        345,
+        325,
+        326,
+        335,
+        336,
         346,
         347,
         348,
         349,
-        356,
-        357,
+        350,
+        351,
         358,
         359,
         360,
         361,
         362,
         363,
+        364,
         365,
-        366,
         367,
-        377,
-        378,
+        368,
+        369,
         379,
         380,
         381,
@@ -3845,11 +4825,11 @@
         384,
         385,
         386,
+        387,
         388,
-        389,
         390,
-        394,
-        395,
+        391,
+        392,
         396,
         397,
         398,
@@ -3860,173 +4840,239 @@
         403,
         404,
         405,
-        406
+        406,
+        407,
+        408
       ]
     },
     "strategy_extension.py": {
-      "sha256": "273497f427538f4635c852bc633a67f836c40a0ef3440780f75dac90ee4ae9a4",
-      "callable_count": 25,
-      "callables": [
+      "sha256": "6d03ebdddbfe076fd547bfcc3576e506eaa9273e556c1c18018dc4cfe8da4eb7",
+      "declared_callables": [
+        {
+          "name": "confirmed_signal",
+          "line": 21
+        },
         {
           "name": "_request_object",
-          "line": 19
+          "line": 36
         },
         {
           "name": "_frame",
-          "line": 23
+          "line": 40
         },
         {
           "name": "_limit",
-          "line": 27
+          "line": 44
         },
         {
           "name": "SignalBook.__init__",
-          "line": 33
+          "line": 50
         },
         {
           "name": "SignalBook._connect",
-          "line": 51
+          "line": 69
         },
         {
           "name": "SignalBook.record",
-          "line": 57
+          "line": 75
         },
         {
           "name": "SignalBook.outcome",
-          "line": 80
+          "line": 98
         },
         {
           "name": "SignalBook.recent",
-          "line": 89
+          "line": 107
         },
         {
           "name": "SignalBook.history",
-          "line": 94
+          "line": 112
         },
         {
           "name": "StrategySupervisor.__init__",
-          "line": 101
+          "line": 119
         },
         {
           "name": "StrategySupervisor._execution_enabled",
-          "line": 115
+          "line": 133
         },
         {
           "name": "StrategySupervisor.stop",
-          "line": 128
+          "line": 146
         },
         {
           "name": "StrategySupervisor._calendar_status",
-          "line": 135
+          "line": 153
         },
         {
           "name": "StrategySupervisor.status",
-          "line": 143
+          "line": 161
         },
         {
           "name": "StrategySupervisor.configure",
-          "line": 164
+          "line": 182
         },
         {
           "name": "StrategySupervisor.read_closed",
-          "line": 214
+          "line": 232
         },
         {
           "name": "StrategySupervisor.sample",
-          "line": 239
+          "line": 257
         },
         {
           "name": "StrategySupervisor._history",
-          "line": 247
+          "line": 265
         },
         {
           "name": "StrategySupervisor._source_label",
-          "line": 266
+          "line": 284
         },
         {
           "name": "StrategySupervisor.research",
-          "line": 271
-        },
-        {
-          "name": "StrategySupervisor._research_options",
-          "line": 282
-        },
-        {
-          "name": "StrategySupervisor.scan_all",
           "line": 289
         },
         {
+          "name": "StrategySupervisor._research_options",
+          "line": 300
+        },
+        {
+          "name": "StrategySupervisor.scan_all",
+          "line": 308
+        },
+        {
+          "name": "StrategySupervisor._selected_parameters",
+          "line": 378
+        },
+        {
           "name": "StrategySupervisor.activate_best",
-          "line": 344
+          "line": 390
         },
         {
           "name": "StrategySupervisor.tick",
-          "line": 385
+          "line": 431
         },
         {
           "name": "StrategySupervisor.loop",
-          "line": 504
+          "line": 554
         }
       ],
       "coverage": {
-        "covered_lines": 331,
-        "num_statements": 353,
-        "percent_covered": 93.76770538243626,
-        "percent_covered_display": "94",
-        "missing_lines": 22,
+        "covered_lines": 362,
+        "num_statements": 389,
+        "percent_covered": 93.05912596401028,
+        "percent_covered_display": "93",
+        "missing_lines": 27,
         "excluded_lines": 0,
-        "percent_statements_covered": 93.76770538243626,
-        "percent_statements_covered_display": "94"
+        "percent_statements_covered": 93.05912596401028,
+        "percent_statements_covered_display": "93"
       },
-      "missing_statement_lines": [
-        60,
-        138,
-        178,
-        180,
-        244,
-        257,
-        260,
+      "missing_lines": [
+        78,
+        156,
+        188,
+        196,
+        198,
+        211,
         262,
-        359,
-        362,
-        396,
+        275,
+        278,
+        280,
+        326,
+        332,
+        383,
+        405,
         408,
-        409,
-        425,
-        426,
-        460,
-        468,
-        480,
-        501,
-        502,
-        505,
-        506
+        442,
+        455,
+        456,
+        472,
+        473,
+        510,
+        518,
+        530,
+        551,
+        552,
+        555,
+        556
+      ]
+    },
+    "strategy_research.py": {
+      "sha256": "91052870a9129569d4c93c7f4d4b6e80e623d961cef49408c357cf636fa47d07",
+      "declared_callables": [
+        {
+          "name": "_validated_parameters",
+          "line": 18
+        },
+        {
+          "name": "latest_signal",
+          "line": 23
+        },
+        {
+          "name": "_bar_end",
+          "line": 37
+        },
+        {
+          "name": "_simulate_partition",
+          "line": 44
+        },
+        {
+          "name": "_walk_forward",
+          "line": 99
+        },
+        {
+          "name": "backtest",
+          "line": 127
+        }
+      ],
+      "coverage": {
+        "covered_lines": 143,
+        "num_statements": 146,
+        "percent_covered": 97.94520547945206,
+        "percent_covered_display": "98",
+        "missing_lines": 3,
+        "excluded_lines": 0,
+        "percent_statements_covered": 97.94520547945206,
+        "percent_statements_covered_display": "98"
+      },
+      "missing_lines": [
+        147,
+        148,
+        154
       ]
     },
     "strategy_selector.py": {
-      "sha256": "16d4fda8e40ce819efd05cbde467dea079aecd5e322c014a8ac496a8d86e63df",
-      "callable_count": 1,
-      "callables": [
+      "sha256": "04348519144275fc5aebc4eb85cf55c94d01d14aae4df0b87742c388e3edcdbe",
+      "declared_callables": [
         {
           "name": "compare_all",
-          "line": 17
+          "line": 19
         }
       ],
       "coverage": {
-        "covered_lines": 40,
-        "num_statements": 43,
-        "percent_covered": 93.02325581395348,
+        "covered_lines": 53,
+        "num_statements": 57,
+        "percent_covered": 92.98245614035088,
         "percent_covered_display": "93",
-        "missing_lines": 3,
+        "missing_lines": 4,
         "excluded_lines": 0,
-        "percent_statements_covered": 93.02325581395348,
+        "percent_statements_covered": 92.98245614035088,
         "percent_statements_covered_display": "93"
       },
-      "missing_statement_lines": [
-        22,
-        25,
-        73
+      "missing_lines": [
+        24,
+        27,
+        36,
+        89
       ]
     }
-  }
+  },
+  "coverage_limits": "Unittest statement coverage only; browser/server subprocesses and fresh package checks are measured separately. Inventory excludes nested helpers; line execution is not a guarantee of every input or branch.",
+  "unverified": [
+    "Qumatix Play listing/proprietary strategies (cloud proxy403)",
+    "Authenticated Deriv account and actual demo execution",
+    "Windows launcher execution",
+    "Profitability, future accuracy, calibrated probabilities",
+    "Live and MT5 execution (disabled/unsupported)"
+  ]
 }

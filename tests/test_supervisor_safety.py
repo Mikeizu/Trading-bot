@@ -2,7 +2,7 @@
 import sqlite3,tempfile, threading, time, unittest
 from pathlib import Path
 from unittest.mock import patch
-from naked_strategies import sample_candles
+from market_data import sample_candles
 from strategy_extension import StrategySupervisor,SignalBook
 from deriv_bridge import BridgeError,DerivTransport
 
@@ -25,7 +25,7 @@ class BrokerStandIn:
         return self.quote
     def buy_quote(self,token,*,internal=False):self.buys.append(token);return {'contract_id':'mock-contract'}
 
-ELIGIBLE={'regime':'ranging','trading_allowed':True,'eligible_strategies':['kangaroo'],'reasons':['fixture']}
+ELIGIBLE={'regime':'ranging','trading_allowed':True,'eligible_strategies':['RSI'],'reasons':['fixture']}
 BLOCKED={'regime':'uncertain','trading_allowed':False,'eligible_strategies':[],'reasons':['Mixed evidence']}
 
 class SupervisorSafetyTests(unittest.TestCase):
@@ -39,7 +39,7 @@ class SupervisorSafetyTests(unittest.TestCase):
                   'confirmed_at':last,'explanation':'Confirmed test-only deterministic setup'}
     def tearDown(self):self.tmp.cleanup()
     def configure(self,action='demo_trade'):
-        return self.s.configure({'strategy':'kangaroo','profile':'scalping','timeframe':'5m',
+        return self.s.configure({'strategy':'RSI','profile':'scalping','timeframe':'5m',
                                  'symbol':'R_100','action':action,'stake':1,'expiry_minutes':3})
     def tick(self,regime=ELIGIBLE):
         with patch('strategy_extension.confirmed_signal',return_value=self.sig),patch('strategy_extension.classify_regime',return_value=regime):self.s.tick()
@@ -57,7 +57,7 @@ class SupervisorSafetyTests(unittest.TestCase):
         self.assertEqual(self.b.buys,[])
     def test_accepted_demo_order_context_and_restart_duplicate(self):
         self.configure();self.tick();self.assertEqual(self.b.buys,['test-only'])
-        self.assertEqual(self.b.context['strategy'],'kangaroo');self.assertEqual(self.b.context['regime'],'ranging')
+        self.assertEqual(self.b.context['strategy'],'RSI');self.assertEqual(self.b.context['regime'],'ranging')
         self.assertEqual(self.s.status()['events'][0]['action'],'BROKER_ACCEPTED')
         self.s.stop();self.s=StrategySupervisor(self.b,self.path);self.s.read_closed=lambda *a,**kw:self.rows
         self.configure();self.tick();self.assertEqual(self.b.buys,['test-only'])
@@ -98,7 +98,7 @@ class SupervisorSafetyTests(unittest.TestCase):
         self.tick();self.assertEqual(self.b.buys,[]);self.assertEqual(self.s.status()['events'],[])
         self.assertIn('Stale',self.s.last_note)
     def test_nan_and_fractional_expiry_rejected(self):
-        base={'strategy':'kangaroo','profile':'scalping','timeframe':'5m','symbol':'R_100','action':'monitor'}
+        base={'strategy':'RSI','profile':'scalping','timeframe':'5m','symbol':'R_100','action':'monitor'}
         for action in ('monitor','demo_trade'):
             for update in ({'stake':float('nan')},{'expiry_minutes':1.5},{'stake':True},{'expiry_minutes':float('inf')}):
                 with self.subTest(update=update,action=action),self.assertRaises(ValueError):self.s.configure({**base,'action':action,**update})
@@ -107,8 +107,8 @@ class SupervisorSafetyTests(unittest.TestCase):
         self.assertEqual(self.b.buys,[]);self.assertFalse(self.s.active)
         self.assertIn('latest completed',self.s.last_error)
     def test_research_cost_and_provenance_forwarded(self):
-        opts={'source':'synthetic','timeframe':'5m','profile':'scalping','strategy':'kangaroo',
-              'commission_per_trade':.2,'spread_bps':3,'slippage_bps':2,'parameters':{'wick_fraction':.6}}
+        opts={'source':'synthetic','timeframe':'5m','profile':'scalping','strategy':'RSI',
+              'commission_per_trade':.2,'spread_bps':3,'slippage_bps':2,'parameters':{}}
         report=self.s.research(opts)
         self.assertIn('Synthetic',report['source'])
         self.assertIn('provenance',report)
@@ -137,7 +137,7 @@ class SupervisorSafetyTests(unittest.TestCase):
     def test_account_switch_during_research_cannot_bind_previous_history(self):
         def comparison(*args,**kwargs):
             self.b.account_id='OTHER_ACCOUNT'
-            return {'qualified':True,'winner':'kangaroo'}
+            return {'qualified':True,'winner':'RSI'}
         with patch('strategy_extension.compare_all',side_effect=comparison):
             report=self.s.scan_all({'source':'deriv','symbol':'R_100','timeframe':'5m','profile':'scalping'})
         self.assertFalse(report['auto_eligible']);self.assertIsNone(self.s.best_selection['winner'])
@@ -145,7 +145,7 @@ class SupervisorSafetyTests(unittest.TestCase):
         for request in (None,[],True,'not an object'):
             for call in (self.s.configure,self.s.research,self.s.scan_all,self.s.activate_best):
                 with self.subTest(request=request,call=call.__name__),self.assertRaises(ValueError):call(request)
-        base={'strategy':'kangaroo','profile':'scalping','timeframe':'5m','symbol':'R_100','action':'monitor'}
+        base={'strategy':'RSI','profile':'scalping','timeframe':'5m','symbol':'R_100','action':'monitor'}
         for field in ('strategy','profile','timeframe','symbol'):
             with self.subTest(field=field),self.assertRaises(ValueError):self.s.configure({**base,field:[]})
         for call in (self.s.sample,lambda frame:StrategySupervisor.read_closed(self.s,'R_100',frame)):
@@ -184,14 +184,14 @@ class SupervisorSafetyTests(unittest.TestCase):
         for update in ({'confirmed_at':True},{'confirmed_at':1e100},{'confirmed_at':1.5},
                        {'side':'invented'},{'explanation':None},{'evidence':[]}):
             with self.subTest(update=update),self.assertRaises(ValueError):
-                self.s.book.record(self.b.account_id,'demo','R_100','5m','kangaroo',{**self.sig,**update},'SIGNAL','test')
+                self.s.book.record(self.b.account_id,'demo','R_100','5m','RSI',{**self.sig,**update},'SIGNAL','test')
         self.assertEqual(self.s.book.recent(self.b.account_id),[])
         self.assertEqual(self.s.book.history(self.b.account_id),[])
         for limit in (0,-1,1.5,True,10001):
             for call in (self.s.book.recent,self.s.book.history):
                 with self.subTest(limit=limit),self.assertRaises(ValueError):call(self.b.account_id,limit)
     def test_selected_strategy_rejects_future_selection_and_nonfinite_demo_expiry(self):
-        self.s.best_selection={'qualified':True,'winner':'kangaroo','created_at':int(time.time()),
+        self.s.best_selection={'qualified':True,'winner':'RSI','created_at':int(time.time()),
             'account_id':self.b.account_id,'mode':'demo','source':'deriv','profile':'scalping',
             'timeframe':'1m','symbol':'R_100','expiry_bars':3,'assumed_payout':.8}
         for expiry in (float('inf'),True,3.5):
@@ -204,14 +204,14 @@ class SupervisorSafetyTests(unittest.TestCase):
         trigger="""CREATE TRIGGER reject_history BEFORE INSERT ON strategy_event_history
             BEGIN SELECT RAISE(ABORT,'test disk/audit fault'); END"""
         with self.s.book._connect() as c:c.execute(trigger)
-        args=(self.b.account_id,'demo','R_100','5m','kangaroo',self.sig,'SIGNAL','test')
+        args=(self.b.account_id,'demo','R_100','5m','RSI',self.sig,'SIGNAL','test')
         with self.assertRaises(sqlite3.IntegrityError):self.s.book.record(*args)
         self.assertEqual(self.s.book.recent(self.b.account_id),[])
         with self.s.book._connect() as c:c.execute('DROP TRIGGER reject_history')
         self.assertTrue(self.s.book.record(*args))
         with self.s.book._connect() as c:c.execute(trigger)
         with self.assertRaises(sqlite3.IntegrityError):
-            self.s.book.outcome(self.b.account_id,'R_100','5m','kangaroo',self.sig['confirmed_at'],'BROKER_ACCEPTED','test')
+            self.s.book.outcome(self.b.account_id,'R_100','5m','RSI',self.sig['confirmed_at'],'BROKER_ACCEPTED','test')
         self.assertEqual(self.s.book.recent(self.b.account_id)[0]['action'],'SIGNAL')
         self.assertEqual(len(self.s.book.history(self.b.account_id)),1)
 

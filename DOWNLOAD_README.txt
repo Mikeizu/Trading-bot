@@ -1,4 +1,4 @@
-MIKEIZU TRADELAB PRO - RESEARCH & DEMO APPLICATION
+MIKEIZU TRADELAB PRO - MULTI-STRATEGY RESEARCH TERMINAL
 
 This download contains the editable application, local browser interface,
 Windows/macOS/Linux launchers, documentation, tests, and the verified offline
@@ -12,7 +12,8 @@ WINDOWS QUICK START
    the app. The launcher creates .venv and uses the bundled dependency offline.
 4. The browser should open automatically. If it does not, open the localhost
    address printed in the terminal (default port 8765) on the same computer.
-5. Start with synthetic research. Real-money orders are disabled.
+5. Start with synthetic research in the technical-strategy library. Read each
+   rule, warm-up and validation result. Real-money orders are disabled.
 
 MACOS / LINUX
 Install Python 3.10+ including venv support. From the extracted folder run:
@@ -35,7 +36,7 @@ only; MT5/CFD position execution is not implemented.
 WHAT HAS AND HAS NOT BEEN VERIFIED
 Read docs/CONTROL_AUDIT.md and docs/VALIDATION.md for the actual test
 results and limitations accompanying this package. Passing mocked integrations
-does not prove real broker compatibility or profitability. No application can
+does not prove real broker compatibility, predictive accuracy or profitability. No application can
 honestly promise perfect operation in every broker, market or system condition.
 
 TROUBLESHOOTING
@@ -60,6 +61,12 @@ For an isolated fresh-install check (not an existing trading session):
     python packaging/verify_install.py PATH_TO_DOWNLOADED_ZIP
 The latter creates temporary state, uses only synthetic local data, and tests
 the launcher for the OS where it runs; it does not certify other operating systems.
+
+UPGRADING
+The previous book-pattern workspace has been removed from this app. Original
+state files and historical records are preserved during the filename migration;
+back up the complete database set before upgrading. Old records do not enable
+removed strategies. See docs/RELEASE_NOTES.md and docs/OPERATIONS.md.
 
 LICENSE
 The application is MIT licensed; see LICENSE. The bundled websocket-client
